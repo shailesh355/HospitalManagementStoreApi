@@ -131,10 +131,10 @@ namespace TicketManagementApi.Models.DaLayer
         public async Task<List<ListValue>> GetDesignationAsync(int stateId, LanguageSupported language)
         {
             string fieldLanguage = language == LanguageSupported.Hindi ? "Local" : "English";
-            string query = @"SELECT d.designationId, designationName" + fieldLanguage + @" AS name,
+            string query = @"SELECT d.designationId AS id, designationName" + fieldLanguage + @" AS name
                              FROM designation d
                              WHERE d.stateId = @stateId
-                             ORDER BY name";
+                             ORDER BY d.designationId";
             MySqlParameter[] pm = new MySqlParameter[]{
                 new MySqlParameter("stateId", MySqlDbType.Int16){ Value = stateId }
             };

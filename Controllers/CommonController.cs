@@ -46,6 +46,18 @@ namespace TicketManagementApi.Controllers
             return lv;
         }
         /// <summary>
+        /// Get List of Base Designation of a State, Default Language is Set to English (value 2)
+        /// </summary>
+        /// <param name="sid"></param>
+        /// <param name="language"></param>
+        /// <returns></returns>
+        [HttpGet("designation/{sid}/{language?}")]
+        public async Task<List<ListValue>> BaseDesignation(int sid = (int)StateId.DefaultState, LanguageSupported language = LanguageSupported.English)
+        {
+            List<ListValue> lv = await dl.GetDesignationAsync(sid, language: language);
+            return lv;
+        }
+        /// <summary>
         /// Get Common List based on Category
         /// </summary>
         /// <param name="category"></param>
