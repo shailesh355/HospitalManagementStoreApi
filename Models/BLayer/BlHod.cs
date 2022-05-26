@@ -15,12 +15,14 @@ namespace TicketManagementApi.Models.BLayer
         public string? hodOfficeDistrictname { get; set; }
         public YesNo hodOfficeIsUrbanRural { get; set; }
         public int hodOfficePinCode { get; set; }
+        public int officeCount { get; set; }
+        
         public string? hodOfficeAddress { get; set; }
         [RegularExpression(@"^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9])(?=.*[a-z]).{8,15}$", ErrorMessage = "Invalid email address")]
         public string? hodOfficeEmailId { get; set; }
         public string? hodOfficePhoneNumber { get; set; }
         public string? hodOfficeFaxNumber { get; set; }
-        [RegularExpression(@"http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?", ErrorMessage = "Invalid Website address")]
+       // [RegularExpression(@"http(s)?://([\\w-]+\\.)+[\\w-]+(/[\\w- ./?%&=]*)?", ErrorMessage = "Invalid Website address")]
         public string? hodOfficeWebsite { get; set; }
         public YesNo isRegistrationDocumentUploaded { get; set; }
         public YesNo isVerified { get; set; }
@@ -38,5 +40,8 @@ namespace TicketManagementApi.Models.BLayer
         public string? applicantEmailId { get; set; }
         public string? applicantPassword { get; set; }
         public YesNo isParichayLogin { get; set; }
+        public string? clienIp { get; set; }
+        public Int32? registrationYear { get; set; }
+        public Int64? userId { get; set; }
     }
 }

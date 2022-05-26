@@ -54,7 +54,7 @@ namespace TicketManagementApi.Controllers
         [HttpGet("CommonList/{category}/{language?}")]
         public async Task<List<ListValue>> GetCommonListPublicAsync(string category, LanguageSupported language = LanguageSupported.English)
         {
-            List<ListValue> lv = await dl.GetCommonListAsync(category: category, language: language, YesNo.No);
+            List<ListValue> lv = await dl.GetCommonListAsync(category: category, language: language);
             return lv;
         }
         /// <summary>
