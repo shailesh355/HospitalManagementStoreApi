@@ -1,5 +1,6 @@
 ﻿using BaseClass;
 using MySql.Data.MySqlClient;
+using System.Transactions;
 using TicketManagementApi.Models.BLayer;
 
 namespace TicketManagementApi.Models.DaLayer
@@ -9,7 +10,15 @@ namespace TicketManagementApi.Models.DaLayer
         readonly DBConnection db = new();
         public async Task<ReturnClass.ReturnBool> RegistorNewHodOffice(BlHod blhod)
         {
-            string query = @"INSERT INTO hodofficeregistration (hodOfficeId, hodOfficeName,officeCount, baseDeptId, orgType, hodOfficeLevel, hodOfficeStateId, hodOfficeDistrictId, 
+            ReturnClass.ReturnBool rb=new ReturnClass.ReturnBool(); 
+            bool isofficeExists = await CheckHodOffice(blhod);
+            
+            if (!isofficeExists)
+            {
+                isofficeExists = await CheckEmailExistAsync(blhod.applicantEmailId);
+                if (!isofficeExists)
+                {
+                    string query = @"INSERT INTO hodofficeregistration (hodOfficeId, hodOfficeName,officeCount, baseDeptId, orgType, hodOfficeLevel, hodOfficeStateId, hodOfficeDistrictId, 
                                                 hodOfficeDistrictname, hodOfficeIsUrbanRural, hodOfficePinCode, hodOfficeAddress, hodOfficeEmailId, hodOfficePhoneNumber, 
                                                 hodOfficeFaxNumber, hodOfficeWebsite, isRegistrationDocumentUploaded, registrationStatus, clientIp, 
                                                 applicantName, applicantDesignationCode, applicantMobileNumber, applicantEmailId, isParichayLogin, applicantPassword)
@@ -17,40 +26,50 @@ namespace TicketManagementApi.Models.DaLayer
                                                 @hodOfficeDistrictname, @hodOfficeIsUrbanRural, @hodOfficePinCode, @hodOfficeAddress, @hodOfficeEmailId, @hodOfficePhoneNumber, 
                                                 @hodOfficeFaxNumber, @hodOfficeWebsite, @isRegistrationDocumentUploaded, @registrationStatus, @clientIp, 
                                                 @applicantName, @applicantDesignationCode, @applicantMobileNumber, @applicantEmailId, @isParichayLogin, @applicantPassword)";
-            ReturnClass.ReturnDataTable dt = await GetHodOfficeRegistrationIdAsync(blhod.hodOfficeStateId);
-            if (dt.table.Rows.Count > 0)
-            {
-                blhod.hodOfficeId = Convert.ToInt64(dt.table.Rows[0]["hodOfficeId"].ToString());
-                blhod.officeCount = Convert.ToInt32(dt.table.Rows[0]["officeCount"].ToString());
+                    ReturnClass.ReturnDataTable dt = await GetHodOfficeRegistrationIdAsync(blhod.hodOfficeStateId);
+                    if (dt.table.Rows.Count > 0)
+                    {
+                        blhod.hodOfficeId = Convert.ToInt64(dt.table.Rows[0]["hodOfficeId"].ToString());
+                        blhod.officeCount = Convert.ToInt32(dt.table.Rows[0]["officeCount"].ToString());
+                    }
+                    blhod.isParichayLogin = (int)YesNo.No;
+                    List<MySqlParameter> pm = new();
+                    pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blhod.hodOfficeId });
+                    pm.Add(new MySqlParameter("hodOfficeName", MySqlDbType.String) { Value = blhod.hodOfficeName });
+                    pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.Int32) { Value = blhod.baseDeptId });
+                    pm.Add(new MySqlParameter("orgType", MySqlDbType.Int16) { Value = blhod.orgType });
+                    pm.Add(new MySqlParameter("hodOfficeLevel", MySqlDbType.Int16) { Value = blhod.hodOfficeLevel });
+                    pm.Add(new MySqlParameter("hodOfficeStateId", MySqlDbType.Int16) { Value = blhod.hodOfficeStateId });
+                    pm.Add(new MySqlParameter("officeCount", MySqlDbType.Int32) { Value = blhod.officeCount });
+                    pm.Add(new MySqlParameter("hodOfficeDistrictId", MySqlDbType.Int32) { Value = blhod.hodOfficeDistrictId });
+                    pm.Add(new MySqlParameter("hodOfficeDistrictname", MySqlDbType.VarString) { Value = blhod.hodOfficeDistrictname });
+                    pm.Add(new MySqlParameter("hodOfficeIsUrbanRural", MySqlDbType.Int16) { Value = (int)blhod.hodOfficeIsUrbanRural });
+                    pm.Add(new MySqlParameter("hodOfficePinCode", MySqlDbType.Int32) { Value = blhod.hodOfficePinCode });
+                    pm.Add(new MySqlParameter("hodOfficeAddress", MySqlDbType.VarString) { Value = blhod.hodOfficeAddress });
+                    pm.Add(new MySqlParameter("hodOfficeEmailId", MySqlDbType.VarString) { Value = blhod.hodOfficeEmailId });
+                    pm.Add(new MySqlParameter("hodOfficePhoneNumber", MySqlDbType.VarString) { Value = blhod.hodOfficePhoneNumber });
+                    pm.Add(new MySqlParameter("hodOfficeFaxNumber", MySqlDbType.VarString) { Value = blhod.hodOfficeFaxNumber });
+                    pm.Add(new MySqlParameter("hodOfficeWebsite", MySqlDbType.VarString) { Value = blhod.hodOfficeWebsite });
+                    pm.Add(new MySqlParameter("isRegistrationDocumentUploaded", MySqlDbType.Int16) { Value = (int)blhod.isRegistrationDocumentUploaded });
+                    pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (Int16)RegistrationStatus.Pending });
+                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blhod.clientIp });
+                    pm.Add(new MySqlParameter("applicantName", MySqlDbType.VarString) { Value = blhod.applicantName });
+                    pm.Add(new MySqlParameter("applicantDesignationCode", MySqlDbType.Int16) { Value = blhod.applicantDesignationCode });
+                    pm.Add(new MySqlParameter("applicantMobileNumber", MySqlDbType.Int64) { Value = blhod.applicantMobileNumber });
+                    pm.Add(new MySqlParameter("applicantEmailId", MySqlDbType.VarString) { Value = blhod.applicantEmailId });
+                    pm.Add(new MySqlParameter("isParichayLogin", MySqlDbType.Int16) { Value = (int)blhod.isParichayLogin });
+                    pm.Add(new MySqlParameter("applicantPassword", MySqlDbType.VarString) { Value = blhod.applicantPassword });
+                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "HodRegistration");
+                }
+                else
+                {
+                    rb.message = "Applicant Email-Id has Already Used For Registration!!";
+                }
             }
-            blhod.isParichayLogin = (int)YesNo.No;
-            List<MySqlParameter> pm = new();
-            pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blhod.hodOfficeId });
-            pm.Add(new MySqlParameter("hodOfficeName", MySqlDbType.String) { Value = blhod.hodOfficeName });
-            pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.Int32) { Value = blhod.baseDeptId });
-            pm.Add(new MySqlParameter("orgType", MySqlDbType.Int16) { Value = blhod.orgType });
-            pm.Add(new MySqlParameter("hodOfficeLevel", MySqlDbType.Int16) { Value = blhod.hodOfficeLevel });
-            pm.Add(new MySqlParameter("hodOfficeStateId", MySqlDbType.Int16) { Value = blhod.hodOfficeStateId });
-            pm.Add(new MySqlParameter("officeCount", MySqlDbType.Int32) { Value = blhod.officeCount });
-            pm.Add(new MySqlParameter("hodOfficeDistrictId", MySqlDbType.Int32) { Value = blhod.hodOfficeDistrictId });            
-            pm.Add(new MySqlParameter("hodOfficeDistrictname", MySqlDbType.VarString) { Value = blhod.hodOfficeDistrictname });
-            pm.Add(new MySqlParameter("hodOfficeIsUrbanRural", MySqlDbType.Int16) { Value = (int)blhod.hodOfficeIsUrbanRural });
-            pm.Add(new MySqlParameter("hodOfficePinCode", MySqlDbType.Int32) { Value = blhod.hodOfficePinCode });
-            pm.Add(new MySqlParameter("hodOfficeAddress", MySqlDbType.VarString) { Value = blhod.hodOfficeAddress });
-            pm.Add(new MySqlParameter("hodOfficeEmailId", MySqlDbType.VarString) { Value = blhod.hodOfficeEmailId });
-            pm.Add(new MySqlParameter("hodOfficePhoneNumber", MySqlDbType.VarString) { Value = blhod.hodOfficePhoneNumber });
-            pm.Add(new MySqlParameter("hodOfficeFaxNumber", MySqlDbType.VarString) { Value = blhod.hodOfficeFaxNumber });
-            pm.Add(new MySqlParameter("hodOfficeWebsite", MySqlDbType.VarString) { Value = blhod.hodOfficeWebsite });
-            pm.Add(new MySqlParameter("isRegistrationDocumentUploaded", MySqlDbType.Int16) { Value = (int)blhod.isRegistrationDocumentUploaded });
-            pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)blhod.registrationStatus });
-            pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blhod.clientIp });
-            pm.Add(new MySqlParameter("applicantName", MySqlDbType.VarString) { Value = blhod.applicantName });
-            pm.Add(new MySqlParameter("applicantDesignationCode", MySqlDbType.Int16) { Value = blhod.applicantDesignationCode });
-            pm.Add(new MySqlParameter("applicantMobileNumber", MySqlDbType.Int64) { Value = blhod.applicantMobileNumber });
-            pm.Add(new MySqlParameter("applicantEmailId", MySqlDbType.VarString) { Value = blhod.applicantEmailId });
-            pm.Add(new MySqlParameter("isParichayLogin", MySqlDbType.Int16) { Value = (int)blhod.isParichayLogin });
-            pm.Add(new MySqlParameter("applicantPassword", MySqlDbType.VarString) { Value = blhod.applicantPassword });
-            ReturnClass.ReturnBool rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "HodRegistration");
+            else
+            {
+                rb.message = "This Department has Already Applied For Registration!!";
+            }
             return rb;
         }
         /// <summary>
@@ -76,7 +95,6 @@ namespace TicketManagementApi.Models.DaLayer
             else
                 return dt;
         }
-
         public async Task<bool> CheckEmailExistAsync(string emailId)
         {
             bool isAccountExists = true;
@@ -93,7 +111,7 @@ namespace TicketManagementApi.Models.DaLayer
                 query = @"SELECT h.applicantEmailId
                           FROM hodofficeregistration h
                           where h.applicantEmailId = @emailId AND h.registrationStatus != @registrationStatus ";
-                pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)RegistrationStatus.Rejected });
+                pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)RegistrationStatus.Reject });
                 dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
 
                 if (dt.table.Rows.Count > 0)
@@ -101,9 +119,7 @@ namespace TicketManagementApi.Models.DaLayer
             }
             return isAccountExists;
         }
-
-
-        public async Task<ReturnClass.ReturnDataTable> GetAllHODList()
+        public async Task<ReturnClass.ReturnDataTable> GetAllHODList(Int16 vid)
         {
             string query = @"SELECT h.hodOfficeId ,h.officeCount,h.hodOfficeName,h.baseDeptId,h.orgType,h.hodOfficeLevel,
                                      h.hodOfficeStateId,h.hodOfficeDistrictId,h.hodOfficeDistrictname,h.hodOfficeIsUrbanRural,h.hodOfficeAddress,
@@ -111,9 +127,10 @@ namespace TicketManagementApi.Models.DaLayer
                                      h.isRegistrationDocumentUploaded,h.isVerified,h.verificationDate,h.registrationStatus,h.registrationDate,
                                     h.applicantName,h.applicantDesignationCode,h.applicantMobileNumber,h.applicantEmailId,h.applicantEmailId,
                                     h.isParichayLogin
-                            FROM hodofficeregistration h  ";
-
-            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query);
+                            FROM hodofficeregistration h WHERE h.isVerified=@isVerified ";
+            List<MySqlParameter> pm = new();
+            pm.Add(new MySqlParameter("isVerified", MySqlDbType.Int16) { Value = vid });
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
         public async Task<ReturnClass.ReturnDataTable> GetAllHODListById(Int64 hodOfficeId)
@@ -127,56 +144,131 @@ namespace TicketManagementApi.Models.DaLayer
                             FROM hodofficeregistration h WHERE h.hodOfficeId=@hodOfficeId ";
             List<MySqlParameter> pm = new();
             pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = hodOfficeId });
-            
+
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
-
-        public async Task<ReturnClass.ReturnBool> VerifyHodOffice(BlHod blhod)
+        public async Task<ReturnClass.ReturnBool> VerifyHodOffice(VerificationHod blhod)
         {
-            string query = @"INSERT INTO hodofficeregistration (hodOfficeId, hodOfficeName,officeCount, baseDeptId, orgType, hodOfficeLevel, hodOfficeStateId, hodOfficeDistrictId, 
-                                                hodOfficeDistrictname, hodOfficeIsUrbanRural, hodOfficePinCode, hodOfficeAddress, hodOfficeEmailId, hodOfficePhoneNumber, 
-                                                hodOfficeFaxNumber, hodOfficeWebsite, isRegistrationDocumentUploaded, registrationStatus, clientIp, 
-                                                applicantName, applicantDesignationCode, applicantMobileNumber, applicantEmailId, isParichayLogin, applicantPassword)
-                                        VALUES (@hodOfficeId, @hodOfficeName,@officeCount, @baseDeptId, @orgType, @hodOfficeLevel, @hodOfficeStateId, @hodOfficeDistrictId, 
-                                                @hodOfficeDistrictname, @hodOfficeIsUrbanRural, @hodOfficePinCode, @hodOfficeAddress, @hodOfficeEmailId, @hodOfficePhoneNumber, 
-                                                @hodOfficeFaxNumber, @hodOfficeWebsite, @isRegistrationDocumentUploaded, @registrationStatus, @clientIp, 
-                                                @applicantName, @applicantDesignationCode, @applicantMobileNumber, @applicantEmailId, @isParichayLogin, @applicantPassword)";
-            ReturnClass.ReturnDataTable dt = await GetHodOfficeRegistrationIdAsync(blhod.hodOfficeStateId);
+            ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
+            bool isofficeExists = await CheckVerifyHodOffice(blhod.hodOfficeId);
+            if (!isofficeExists)
+            {
+                string query = @"UPDATE hodofficeregistration 
+                             SET isVerified=@isVerified,clientIp=@clientIp,verificationDate=@verificationDate,
+                                verifiedByLoginId=@verifiedByLoginId,registrationStatus=@registrationStatus 
+                              WHERE hodOfficeId=@hodOfficeId";
+                if (blhod.registrationStatus == RegistrationStatus.Approved)
+                {
+                    blhod.isVerified = YesNo.Yes;
+                }
+                else
+                {
+                    blhod.isVerified = YesNo.No;
+                }
+
+                List<MySqlParameter> pm = new();
+                pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blhod.hodOfficeId });
+                pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)blhod.registrationStatus });
+                pm.Add(new MySqlParameter("isVerified", MySqlDbType.Int16) { Value = (int)blhod.isVerified });
+                pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blhod.clientIp });
+                pm.Add(new MySqlParameter("verifiedByLoginId", MySqlDbType.Int64) { Value = blhod.userId });
+                pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = (int)blhod.isVerified });
+                pm.Add(new MySqlParameter("officeMappingKey", MySqlDbType.Int32) { Value = 0 });
+                pm.Add(new MySqlParameter("registrationDate", MySqlDbType.String) { Value = blhod.date });
+                pm.Add(new MySqlParameter("registrationYear", MySqlDbType.Int32) { Value = DateTime.Now.Date.Year });
+                pm.Add(new MySqlParameter("changePassword", MySqlDbType.Int16) { Value = (int)Active.No });
+                pm.Add(new MySqlParameter("active1", MySqlDbType.Int16) { Value = (int)Active.Yes });
+                pm.Add(new MySqlParameter("isDisabled", MySqlDbType.Int16) { Value = (int)Active.No });
+                pm.Add(new MySqlParameter("userRole", MySqlDbType.Int16) { Value = (int)UserRole.Nodal });
+                pm.Add(new MySqlParameter("isSingleWindowUser", MySqlDbType.Int16) { Value = (int)Active.No });
+                pm.Add(new MySqlParameter("modificationType", MySqlDbType.Int16) { Value = (int)Active.No });
+                pm.Add(new MySqlParameter("userTypeCode", MySqlDbType.Int16) { Value = (int)Active.No });
+                using (TransactionScope ts = new TransactionScope())
+                {
+                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "VerifyHodOffice");
+                    if (rb.status == true && blhod.registrationStatus == RegistrationStatus.Approved && blhod.isVerified == YesNo.Yes)
+                    {
+                        query = @"INSERT INTO userlogin
+                                            (userName,userId,emailId,password,changePassword,active,isDisabled,
+                                            clientIp,userRole,registrationYear,isSingleWindowUser,modificationType,userTypeCode)
+                                        SELECT h.applicantName,h.hodOfficeId,h.applicantEmailId,h.applicantPassword,@changePassword,
+                                        @active1,@isDisabled,@clientIp,@userRole,@registrationYear,@isSingleWindowUser,
+                                        @modificationType,@userTypeCode
+                                            FROM  hodofficeregistration h 
+                                          WHERE h.hodOfficeId=@hodOfficeId";
+                        rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "InsertUserLogin");
+                        if (rb.status)
+                        {
+                            query = @"INSERT INTO  hodoffice (hodOfficeId,hodOfficeName,baseDeptId,orgType,hodOfficeLevel,hodOfficeStateId,
+                                                hodOfficeDistrictId,hodOfficeDistrictname,hodOfficePinCode,hodOfficeAddress,hodOfficeEmailId,
+                                                hodOfficePhoneNumber,hodOfficeFaxNumber,hodOfficeWebsite,currentlyActiveHodMappingKey,
+                                                loginId,active,clientIp,registrationDate) 
+                              SELECT h.hodOfficeId,h.hodOfficeName,h.baseDeptId,h.orgType,h.hodOfficeLevel,h.hodOfficeStateId,
+                                    h.hodOfficeDistrictId,h.hodOfficeDistrictname,h.hodOfficePinCode,h.hodOfficeAddress,h.hodOfficeEmailId,
+                                   h.hodOfficePhoneNumber,h.hodOfficeFaxNumber,h.hodOfficeWebsite,@officeMappingKey,h.hodOfficeId,
+                                   @active,@clientIp,@registrationDate                        
+                               FROM  hodofficeregistration h 
+                               WHERE h.hodOfficeId=@hodOfficeId";
+                            rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "InsertHodOffice");
+                            if (rb.status)
+                            {
+                                ts.Complete();
+                            }
+                            else
+                            {
+                                rb.status = false;
+                            }
+                        }
+
+                    }
+
+                }
+            }else
+            {
+                rb.message = "This Department has Already Verified!!";
+            }
+
+            return rb;
+        }
+
+        public async Task<bool> CheckVerifyHodOffice(Int64 hodOfficeId)
+        {
+            bool isHodOfficeExists = false;
+            string query = @"SELECT h.hodOfficeId
+                            FROM hodoffice h
+                            WHERE h.hodOfficeId = @hodOfficeId  ";
+            List<MySqlParameter> pm = new();
+            pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = hodOfficeId });
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             if (dt.table.Rows.Count > 0)
             {
-                blhod.hodOfficeId = Convert.ToInt64(dt.table.Rows[0]["hodOfficeId"].ToString());
-                blhod.officeCount = Convert.ToInt32(dt.table.Rows[0]["officeCount"].ToString());
+                isHodOfficeExists = true;
             }
-            blhod.isParichayLogin = (int)YesNo.No;
+            return isHodOfficeExists;
+        }
+
+        public async Task<bool> CheckHodOffice(BlHod blhod)
+        {
+            bool isHodOfficeExists = false;
+            string query = @"SELECT h.hodOfficeId
+                            FROM hodofficeregistration h
+                            WHERE h.baseDeptId = @baseDeptId AND h.orgType=@orgType AND h.hodOfficeLevel=@hodOfficeLevel 
+                            AND h.hodOfficeStateId=@hodOfficeStateId AND h.hodOfficeDistrictId=@hodOfficeDistrictId  
+                            and h.registrationStatus!=registrationStatus ";
             List<MySqlParameter> pm = new();
-            pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blhod.hodOfficeId });
-            pm.Add(new MySqlParameter("hodOfficeName", MySqlDbType.String) { Value = blhod.hodOfficeName });
             pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.Int32) { Value = blhod.baseDeptId });
             pm.Add(new MySqlParameter("orgType", MySqlDbType.Int16) { Value = blhod.orgType });
             pm.Add(new MySqlParameter("hodOfficeLevel", MySqlDbType.Int16) { Value = blhod.hodOfficeLevel });
             pm.Add(new MySqlParameter("hodOfficeStateId", MySqlDbType.Int16) { Value = blhod.hodOfficeStateId });
-            pm.Add(new MySqlParameter("officeCount", MySqlDbType.Int32) { Value = blhod.officeCount });
             pm.Add(new MySqlParameter("hodOfficeDistrictId", MySqlDbType.Int32) { Value = blhod.hodOfficeDistrictId });
-            pm.Add(new MySqlParameter("hodOfficeDistrictname", MySqlDbType.VarString) { Value = blhod.hodOfficeDistrictname });
-            pm.Add(new MySqlParameter("hodOfficeIsUrbanRural", MySqlDbType.Int16) { Value = (int)blhod.hodOfficeIsUrbanRural });
-            pm.Add(new MySqlParameter("hodOfficePinCode", MySqlDbType.Int32) { Value = blhod.hodOfficePinCode });
-            pm.Add(new MySqlParameter("hodOfficeAddress", MySqlDbType.VarString) { Value = blhod.hodOfficeAddress });
-            pm.Add(new MySqlParameter("hodOfficeEmailId", MySqlDbType.VarString) { Value = blhod.hodOfficeEmailId });
-            pm.Add(new MySqlParameter("hodOfficePhoneNumber", MySqlDbType.VarString) { Value = blhod.hodOfficePhoneNumber });
-            pm.Add(new MySqlParameter("hodOfficeFaxNumber", MySqlDbType.VarString) { Value = blhod.hodOfficeFaxNumber });
-            pm.Add(new MySqlParameter("hodOfficeWebsite", MySqlDbType.VarString) { Value = blhod.hodOfficeWebsite });
-            pm.Add(new MySqlParameter("isRegistrationDocumentUploaded", MySqlDbType.Int16) { Value = (int)blhod.isRegistrationDocumentUploaded });
-            pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)blhod.registrationStatus });
-            pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blhod.clientIp });
-            pm.Add(new MySqlParameter("applicantName", MySqlDbType.VarString) { Value = blhod.applicantName });
-            pm.Add(new MySqlParameter("applicantDesignationCode", MySqlDbType.Int16) { Value = blhod.applicantDesignationCode });
-            pm.Add(new MySqlParameter("applicantMobileNumber", MySqlDbType.Int64) { Value = blhod.applicantMobileNumber });
-            pm.Add(new MySqlParameter("applicantEmailId", MySqlDbType.VarString) { Value = blhod.applicantEmailId });
-            pm.Add(new MySqlParameter("isParichayLogin", MySqlDbType.Int16) { Value = (int)blhod.isParichayLogin });
-            pm.Add(new MySqlParameter("applicantPassword", MySqlDbType.VarString) { Value = blhod.applicantPassword });
-            ReturnClass.ReturnBool rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "HodRegistration");
-            return rb;
+            pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)RegistrationStatus.Reject });
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
+            if (dt.table.Rows.Count > 0)
+            {
+                isHodOfficeExists = true;
+            }
+            return isHodOfficeExists;
         }
     }
 }

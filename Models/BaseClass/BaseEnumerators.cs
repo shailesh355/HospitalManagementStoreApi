@@ -31,4 +31,12 @@ namespace BaseClass
         No = 0,
         Yes = 1
     }
+    public enum UserRole
+    {
+        
+        Admin = 1,
+        Nodal = 2,
+        Receiver = 3,
+        User = 4
+    }
 }

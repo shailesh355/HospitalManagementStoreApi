@@ -70,7 +70,6 @@ namespace TicketManagementApi.Models.Balayer
             }
         }
     }
-
     public class CaptchaReturnType
     {
         public string captchaID { get; set; }

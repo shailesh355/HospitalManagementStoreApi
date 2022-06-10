@@ -6,9 +6,12 @@
     }
     public enum RegistrationStatus
     {
-        Pending = 0,
-        Objection = 1,
-        Approved = 2,
-        Rejected=3
+        Approved = 1,
+        Reject = 2,
+        Pending = 3,
+        Justification = 4,
+        Objection = 5
+        
+        
     }
 }
