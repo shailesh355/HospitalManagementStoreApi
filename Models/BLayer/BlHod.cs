@@ -50,6 +50,11 @@ namespace TicketManagementApi.Models.BLayer
         public YesNo ? isRegistrationDocumentUploaded { get; set; }
         public YesNo? isVerified { get; set; }        
         public RegistrationStatus  registrationStatus { get; set; }
+      
+    }
+    public class Verification
+    {
+        public List<VerificationHod> verificationHods { get; set; }
         public string? clientIp { get; set; }
         public string? date { get; set; }
         public Int64? userId { get; set; }

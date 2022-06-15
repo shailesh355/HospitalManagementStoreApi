@@ -46,14 +46,14 @@ namespace TicketManagementApi.Controllers
         /// </summary>         
                          
         /// <returns></returns>
-        [HttpGet("getallhodlist/{vid?}")]
+        [HttpGet("getallhodlist/{vid?}/{rid?}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ReturnClass.ReturnDataTable> GetAllHODList(Int16 vid=0)
+        public async Task<ReturnClass.ReturnDataTable> GetAllHODList(Int16 vid=0, Int16 rid = 0)
         {
             DlHod dl = new DlHod();
             //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
-            ReturnClass.ReturnDataTable dt = await dl.GetAllHODList(vid);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllHODList(vid,rid);
             return dt;
         }
         /// <summary>
@@ -77,7 +77,7 @@ namespace TicketManagementApi.Controllers
         /// <returns></returns>
         [HttpPost("verifyhodregistration")]
          [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ReturnClass.ReturnString> VerifyHODRegistration([FromBody] VerificationHod appParam)
+        public async Task<ReturnClass.ReturnString> VerifyHODRegistration([FromBody] Verification appParam)
         {
             DlHod dl = new DlHod();
             ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
