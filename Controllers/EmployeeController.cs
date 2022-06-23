@@ -43,6 +43,36 @@ namespace TicketManagementApi.Controllers
             return rs;
         }
         /// <summary>
+        ///Save Employee Record
+        /// </summary>
+        /// <param name="appParam"></param>        
+        /// <returns></returns>
+        [HttpPost("updateemployee")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnString> UpdateEmployee([FromBody] BlEmployee appParam)
+        {
+            DlEmployee dl = new DlEmployee();
+            ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            appParam.registrationYear = Convert.ToInt32(DateTime.Now.Year.ToString());
+            appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            ReturnClass.ReturnBool rb = await dl.SaveEmployeeDetail(appParam);
+            if (rb.status)
+            {
+                rs.message = "Data Saved Successfully";
+                rs.status = true;
+                rs.value = rb.message;
+            }
+            else
+            {
+                //====Failure====
+                rs.message = "Failed to save data " + rb.message;
+                rs.status = false;
+            }
+            return rs;
+        }
+        /// <summary>
         ///Get All HOD List
         /// </summary>         
 
@@ -61,7 +91,7 @@ namespace TicketManagementApi.Controllers
         ///Get All HOD List
         /// </summary> 
         /// <returns></returns>
-        [HttpGet("getallemployeebyid/{Id}")]
+        [HttpGet("getemployeebyid/{Id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeById(Int64 Id)
         {

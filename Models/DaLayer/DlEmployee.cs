@@ -52,7 +52,49 @@ namespace TicketManagementApi.Models.DaLayer
             return rb;
         }
 
+        public async Task<ReturnClass.ReturnBool> UpdateEmployeeDetail(BlEmployee blEmployee)
+        {
+            ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
+            bool isofficeExists = await CheckEmployeeMobileExists(blEmployee.mobileNo);
 
+            if (!isofficeExists)
+            {
+                isofficeExists = await CheckEmployeeMobileExists(blEmployee.emailId);
+                if (!isofficeExists)
+                {
+                    string query = @"INSERT INTO employeemaster (stateId,employeeId,employeeName,mobileNo,emailId,workingStatus,
+                                                recruitmentType,userId,clientIp,entryDateTime, registrationYear)
+                                        VALUES (@stateId,@employeeId,@employeeName,@mobileNo,@emailId,@workingStatus,
+                                                @recruitmentType,@userId,@clientIp,@entryDateTime,@registrationYear)";
+
+                    blEmployee.employeeId = await GetEmployeeId((int)blEmployee.registrationYear);
+
+                    List<MySqlParameter> pm = new();
+                    pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = blEmployee.employeeId });
+                    pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blEmployee.stateId });
+                    pm.Add(new MySqlParameter("employeeName", MySqlDbType.String) { Value = blEmployee.employeeName });
+                    pm.Add(new MySqlParameter("mobileNo", MySqlDbType.String) { Value = blEmployee.mobileNo });
+                    pm.Add(new MySqlParameter("emailId", MySqlDbType.String) { Value = blEmployee.emailId });
+                    pm.Add(new MySqlParameter("workingStatus", MySqlDbType.Int16) { Value = blEmployee.workingStatus });
+                    pm.Add(new MySqlParameter("recruitmentType", MySqlDbType.Int16) { Value = blEmployee.recruitmentType });
+                    pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blEmployee.userId });
+                    pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blEmployee.entryDateTime });
+                    pm.Add(new MySqlParameter("registrationYear", MySqlDbType.Int32) { Value = (int)blEmployee.registrationYear });
+                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blEmployee.clientIp });
+
+                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "employeeDetail");
+                }
+                else
+                {
+                    rb.message = "Applicant Email-Id has Already Used For Registration!!";
+                }
+            }
+            else
+            {
+                rb.message = "This Department has Already Applied For Registration!!";
+            }
+            return rb;
+        }
 
         /// <summary>
         /// for EmployeeId generation 12 digit
