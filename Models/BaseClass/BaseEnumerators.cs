@@ -39,4 +39,13 @@ namespace BaseClass
         Receiver = 3,
         User = 4
     }
+    public enum idPrefix
+    {
+        registrationId = 3,
+        serviceRegistrationId = 2,
+        employeeId = 2,
+        officeId = 1,
+        empOfficeMappingId = 2,
+        liftServiceId = 4,
+    }
 }

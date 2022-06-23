@@ -1,0 +1,76 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using BaseClass;
+using TicketManagementApi.Models.DaLayer;
+using TicketManagementApi.Models.BLayer;
+
+namespace TicketManagementApi.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class Employee : ControllerBase
+    {
+        /// <summary>
+        ///Save Employee Record
+        /// </summary>
+        /// <param name="appParam"></param>        
+        /// <returns></returns>
+        [HttpPost("saveemployee")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnString> SaveEmployee([FromBody] BlEmployee appParam)
+        {
+            DlEmployee dl = new DlEmployee();
+            ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            appParam.registrationYear = Convert.ToInt32(DateTime.Now.Year.ToString());
+            appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            ReturnClass.ReturnBool rb = await dl.SaveEmployeeDetail(appParam);
+            if (rb.status)
+            {
+                rs.message = "Data Saved Successfully";
+                rs.status = true;
+                rs.value = rb.message;
+            }
+            else
+            {
+                //====Failure====
+                rs.message = "Failed to save data " + rb.message;
+                rs.status = false;
+            }
+            return rs;
+        }
+        /// <summary>
+        ///Get All HOD List
+        /// </summary>         
+
+        /// <returns></returns>
+        [HttpGet("getallemployee")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList()
+        {
+            DlEmployee dl = new DlEmployee();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeList();
+            return dt;
+        }
+        /// <summary>
+        ///Get All HOD List
+        /// </summary> 
+        /// <returns></returns>
+        [HttpGet("getallemployeebyid/{Id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeById(Int64 Id)
+        {
+            DlEmployee dl = new DlEmployee();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetEmployeeById(Id);
+            return dt;
+        }
+
+    }
+}

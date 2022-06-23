@@ -119,7 +119,7 @@ namespace TicketManagementApi.Models.DaLayer
             }
             return isAccountExists;
         }
-        public async Task<ReturnClass.ReturnDataTable> GetAllHODList(Int16 vid ,Int16 rid)
+        public async Task<ReturnClass.ReturnDataTable> GetAllHODList(Int16 vid, Int16 rid)
         {
             string query = @"SELECT h.hodOfficeId ,h.officeCount,h.hodOfficeName,h.baseDeptId,h.orgType,h.hodOfficeLevel,
                                      h.hodOfficeStateId,h.hodOfficeDistrictId,h.hodOfficeDistrictname,h.hodOfficeIsUrbanRural,h.hodOfficeAddress,
@@ -136,13 +136,19 @@ namespace TicketManagementApi.Models.DaLayer
         }
         public async Task<ReturnClass.ReturnDataTable> GetAllHODListById(Int64 hodOfficeId)
         {
-            string query = @"SELECT h.hodOfficeId ,h.officeCount,h.hodOfficeName,h.baseDeptId,h.orgType,h.hodOfficeLevel,
-                                     h.hodOfficeStateId,h.hodOfficeDistrictId,h.hodOfficeDistrictname,h.hodOfficeIsUrbanRural,h.hodOfficeAddress,
+            string query = @"SELECT h.hodOfficeId ,h.hodOfficeName,h.baseDeptId,b.deptNameEnglish,h.orgType,orgeType.nameEnglish AS orgTypeName,h.hodOfficeLevel,
+                                     OfficeLevel.nameEnglish AS OfficeLevelName,h.hodOfficeStateId,s.stateNameEnglish AS StateName,h.hodOfficeDistrictId,
+									h.hodOfficeDistrictname,h.hodOfficeIsUrbanRural,h.hodOfficeAddress,
                                      h.hodOfficePinCode,h.hodOfficeEmailId,h.hodOfficePhoneNumber,h.hodOfficeFaxNumber,h.hodOfficeWebsite,
                                      h.isRegistrationDocumentUploaded,h.isVerified,h.verificationDate,h.registrationStatus,h.registrationDate,
-                                    h.applicantName,h.applicantDesignationCode,h.applicantMobileNumber,h.applicantEmailId,h.applicantEmailId,
-                                    h.isParichayLogin
-                            FROM hodofficeregistration h WHERE h.hodOfficeId=@hodOfficeId ";
+                                    h.applicantName,h.applicantDesignationCode,ds.designationNameEnglish AS designationName,h.applicantMobileNumber,
+									h.applicantEmailId,h.isParichayLogin
+                            FROM hodofficeregistration AS  h 
+									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId AND h.hodOfficeStateId=b.stateId
+									 JOIN ddlcatlist AS orgeType ON  orgeType.category='organizationType' AND orgeType.id=h.orgType
+									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=h.orgType
+									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode AND ds.stateId=h.hodOfficeStateId
+									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE h.hodOfficeId=@hodOfficeId ";
             List<MySqlParameter> pm = new();
             pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = hodOfficeId });
 
@@ -153,47 +159,49 @@ namespace TicketManagementApi.Models.DaLayer
         {
             ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
             Int32 countData = 0;
-            foreach (var item in blhod.verificationHods)
+            if (blhod.verificationHods.Count != 0)
             {
-                bool isofficeExists = await CheckVerifyHodOffice(item.hodOfficeId);
-                if (!isofficeExists)
+                foreach (var item in blhod.verificationHods)
                 {
-                    string query = @"UPDATE hodofficeregistration 
+                    bool isofficeExists = await CheckVerifyHodOffice(item.hodOfficeId);
+                    if (!isofficeExists)
+                    {
+                        string query = @"UPDATE hodofficeregistration 
                              SET isVerified=@isVerified,clientIp=@clientIp,verificationDate=@verificationDate,
                                 verifiedByLoginId=@verifiedByLoginId,registrationStatus=@registrationStatus 
                               WHERE hodOfficeId=@hodOfficeId";
-                    if (item.registrationStatus == RegistrationStatus.Approved)
-                    {
-                        item.isVerified = YesNo.Yes;
-                    }
-                    else
-                    {
-                        item.isVerified = YesNo.No;
-                    }
-
-                    List<MySqlParameter> pm = new();
-                    pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = item.hodOfficeId });
-                    pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)item.registrationStatus });
-                    pm.Add(new MySqlParameter("isVerified", MySqlDbType.Int16) { Value = (int)item.isVerified });
-                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blhod.clientIp });
-                    pm.Add(new MySqlParameter("verifiedByLoginId", MySqlDbType.Int64) { Value = blhod.userId });
-                    pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = (int)item.isVerified });
-                    pm.Add(new MySqlParameter("officeMappingKey", MySqlDbType.Int32) { Value = 0 });
-                    pm.Add(new MySqlParameter("registrationDate", MySqlDbType.String) { Value = blhod.date });
-                    pm.Add(new MySqlParameter("registrationYear", MySqlDbType.Int32) { Value = DateTime.Now.Date.Year });
-                    pm.Add(new MySqlParameter("changePassword", MySqlDbType.Int16) { Value = (int)Active.No });
-                    pm.Add(new MySqlParameter("active1", MySqlDbType.Int16) { Value = (int)Active.Yes });
-                    pm.Add(new MySqlParameter("isDisabled", MySqlDbType.Int16) { Value = (int)Active.No });
-                    pm.Add(new MySqlParameter("userRole", MySqlDbType.Int16) { Value = (int)UserRole.Nodal });
-                    pm.Add(new MySqlParameter("isSingleWindowUser", MySqlDbType.Int16) { Value = (int)Active.No });
-                    pm.Add(new MySqlParameter("modificationType", MySqlDbType.Int16) { Value = (int)Active.No });
-                    pm.Add(new MySqlParameter("userTypeCode", MySqlDbType.Int16) { Value = (int)Active.No });
-                    using (TransactionScope ts = new TransactionScope())
-                    {
-                        rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "VerifyHodOffice");
-                        if (rb.status == true && item.registrationStatus == RegistrationStatus.Approved && item.isVerified == YesNo.Yes)
+                        if (item.registrationStatus == RegistrationStatus.Approved)
                         {
-                            query = @"INSERT INTO userlogin
+                            item.isVerified = YesNo.Yes;
+                        }
+                        else
+                        {
+                            item.isVerified = YesNo.No;
+                        }
+
+                        List<MySqlParameter> pm = new();
+                        pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = item.hodOfficeId });
+                        pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (int)item.registrationStatus });
+                        pm.Add(new MySqlParameter("isVerified", MySqlDbType.Int16) { Value = (int)item.isVerified });
+                        pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blhod.clientIp });
+                        pm.Add(new MySqlParameter("verifiedByLoginId", MySqlDbType.Int64) { Value = blhod.userId });
+                        pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = (int)item.isVerified });
+                        pm.Add(new MySqlParameter("officeMappingKey", MySqlDbType.Int32) { Value = 0 });
+                        pm.Add(new MySqlParameter("registrationDate", MySqlDbType.String) { Value = blhod.date });
+                        pm.Add(new MySqlParameter("registrationYear", MySqlDbType.Int32) { Value = DateTime.Now.Date.Year });
+                        pm.Add(new MySqlParameter("changePassword", MySqlDbType.Int16) { Value = (int)Active.No });
+                        pm.Add(new MySqlParameter("active1", MySqlDbType.Int16) { Value = (int)Active.Yes });
+                        pm.Add(new MySqlParameter("isDisabled", MySqlDbType.Int16) { Value = (int)Active.No });
+                        pm.Add(new MySqlParameter("userRole", MySqlDbType.Int16) { Value = (int)UserRole.Nodal });
+                        pm.Add(new MySqlParameter("isSingleWindowUser", MySqlDbType.Int16) { Value = (int)Active.No });
+                        pm.Add(new MySqlParameter("modificationType", MySqlDbType.Int16) { Value = (int)Active.No });
+                        pm.Add(new MySqlParameter("userTypeCode", MySqlDbType.Int16) { Value = (int)Active.No });
+                        using (TransactionScope ts = new TransactionScope())
+                        {
+                            rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "VerifyHodOffice");
+                            if (rb.status == true && item.registrationStatus == RegistrationStatus.Approved && item.isVerified == YesNo.Yes)
+                            {
+                                query = @"INSERT INTO userlogin
                                             (userName,userId,emailId,password,changePassword,active,isDisabled,
                                             clientIp,userRole,registrationYear,isSingleWindowUser,modificationType,userTypeCode)
                                         SELECT h.applicantName,h.hodOfficeId,h.applicantEmailId,h.applicantPassword,@changePassword,
@@ -201,10 +209,10 @@ namespace TicketManagementApi.Models.DaLayer
                                         @modificationType,@userTypeCode
                                             FROM  hodofficeregistration h 
                                           WHERE h.hodOfficeId=@hodOfficeId";
-                            rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "InsertUserLogin");
-                            if (rb.status)
-                            {
-                                query = @"INSERT INTO  hodoffice (hodOfficeId,hodOfficeName,baseDeptId,orgType,hodOfficeLevel,hodOfficeStateId,
+                                rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "InsertUserLogin");
+                                if (rb.status)
+                                {
+                                    query = @"INSERT INTO  hodoffice (hodOfficeId,hodOfficeName,baseDeptId,orgType,hodOfficeLevel,hodOfficeStateId,
                                                 hodOfficeDistrictId,hodOfficeDistrictname,hodOfficePinCode,hodOfficeAddress,hodOfficeEmailId,
                                                 hodOfficePhoneNumber,hodOfficeFaxNumber,hodOfficeWebsite,currentlyActiveHodMappingKey,
                                                 loginId,active,clientIp,registrationDate) 
@@ -214,41 +222,48 @@ namespace TicketManagementApi.Models.DaLayer
                                    @active,@clientIp,@registrationDate                        
                                FROM  hodofficeregistration h 
                                WHERE h.hodOfficeId=@hodOfficeId";
-                                rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "InsertHodOffice");
-                                if (rb.status)
-                                {
-                                    ts.Complete();
-                                    countData = countData + 1;
+                                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "InsertHodOffice");
+                                    if (rb.status)
+                                    {
+                                        ts.Complete();
+                                        countData = countData + 1;
+                                    }
+                                    else
+                                    {
+                                        rb.status = false;
+                                    }
                                 }
-                                else
-                                {
-                                    rb.status = false;
-                                }
+
+                            }
+                            else if (rb.status == true && item.registrationStatus == RegistrationStatus.Reject)
+                            {
+                                ts.Complete();
+                                countData = countData + 1;
                             }
 
-                        }
-                        else if (rb.status == true && item.registrationStatus == RegistrationStatus.Reject)
-                        {
-                            ts.Complete();
-                            countData = countData + 1;
-                        }
 
-
+                        }
                     }
+                    else
+                    {
+                        countData = 0;
+                        rb.message = "This Department has Already Verified!!";
+                    }
+                }
+
+                if (blhod.verificationHods.Count == countData)
+                {
+                    rb.status = true;
                 }
                 else
                 {
-                    countData =0;
-                    rb.message = "This Department has Already Verified!!";
+                    rb.status = false;
                 }
-            }
-            if (blhod.verificationHods.Count == countData)
-            {
-                rb.status = true;
             }
             else
             {
-                rb.status = false;
+                
+                rb.message = "Department Data Empty!!";
             }
             return rb;
         }
