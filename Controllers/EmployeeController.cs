@@ -57,17 +57,17 @@ namespace TicketManagementApi.Controllers
             appParam.registrationYear = Convert.ToInt32(DateTime.Now.Year.ToString());
             appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
-            ReturnClass.ReturnBool rb = await dl.SaveEmployeeDetail(appParam);
+            ReturnClass.ReturnBool rb = await dl.UpdateEmployeeDetail(appParam);
             if (rb.status)
             {
-                rs.message = "Data Saved Successfully";
+                rs.message = "Data Updated Successfully";
                 rs.status = true;
                 rs.value = rb.message;
             }
             else
             {
                 //====Failure====
-                rs.message = "Failed to save data " + rb.message;
+                rs.message = "Failed to Update data " + rb.message;
                 rs.status = false;
             }
             return rs;
@@ -84,7 +84,7 @@ namespace TicketManagementApi.Controllers
             DlEmployee dl = new DlEmployee();
             //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
-            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeList();
+            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeList(userId);
             return dt;
         }
         /// <summary>
@@ -100,6 +100,66 @@ namespace TicketManagementApi.Controllers
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             ReturnClass.ReturnDataTable dt = await dl.GetEmployeeById(Id);
             return dt;
+        }
+
+
+        /// <summary>
+        ///Save Office Record
+        /// </summary>
+        /// <param name="appParam"></param>        
+        /// <returns></returns>
+        [HttpPost("saveoffice")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnString> SaveOffice([FromBody] BlOffice appParam)
+        {
+            DlEmployee dl = new DlEmployee();
+            ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);           
+            appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            ReturnClass.ReturnBool rb = await dl.SaveOfficeDetail(appParam);
+            if (rb.status)
+            {
+                rs.message = "Data Saved Successfully";
+                rs.status = true;
+                rs.value = rb.message;
+            }
+            else
+            {
+                //====Failure====
+                rs.message = "Failed to save data " + rb.message;
+                rs.status = false;
+            }
+            return rs;
+        }
+        /// <summary>
+        ///Save Office Record
+        /// </summary>
+        /// <param name="appParam"></param>        
+        /// <returns></returns>
+        [HttpPost("updateoffice")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnString> UpdateOffice([FromBody] BlOffice appParam)
+        {
+            DlEmployee dl = new DlEmployee();
+            ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            ReturnClass.ReturnBool rb = await dl.SaveOfficeDetail(appParam);
+            if (rb.status)
+            {
+                rs.message = "Data Saved Successfully";
+                rs.status = true;
+                rs.value = rb.message;
+            }
+            else
+            {
+                //====Failure====
+                rs.message = "Failed to save data " + rb.message;
+                rs.status = false;
+            }
+            return rs;
         }
 
     }
