@@ -406,7 +406,7 @@ namespace TicketManagementApi.Models.DaLayer
             return isHodOfficeExists;
         }
 
-        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 userId)
+        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 userId) 
         {
             string query = @"SELECT h.hodOfficeId ,h.officeCount,h.hodOfficeName,h.baseDeptId,h.orgType,h.hodOfficeLevel,
                                      h.hodOfficeStateId,h.hodOfficeDistrictId,h.hodOfficeDistrictname,h.hodOfficeIsUrbanRural,h.hodOfficeAddress,
