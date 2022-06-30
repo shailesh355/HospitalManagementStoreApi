@@ -117,6 +117,8 @@ namespace TicketManagementApi.Controllers
             appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            if (appParam.OfficeId == null)
+                appParam.OfficeId = 0;
             ReturnClass.ReturnBool rb = await dl.SaveOfficeDetail(appParam);
             if (rb.status)
             {
@@ -146,7 +148,7 @@ namespace TicketManagementApi.Controllers
             appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
-            ReturnClass.ReturnBool rb = await dl.SaveOfficeDetail(appParam);
+            ReturnClass.ReturnBool rb = await dl.UpdateOfficeDetail(appParam);
             if (rb.status)
             {
                 rs.message = "Data Saved Successfully";
@@ -202,6 +204,8 @@ namespace TicketManagementApi.Controllers
             appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            if (appParam.empOfficeId == null)
+                appParam.empOfficeId = 0;
             ReturnClass.ReturnBool rb = await dl.SaveEmpOfficeMapping(appParam);
             if (rb.status)
             {
@@ -246,6 +250,32 @@ namespace TicketManagementApi.Controllers
                 rs.status = false;
             }
             return rs;
+        }
+
+        /// <returns></returns>
+        [HttpGet("getallempofficemapping")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmpOfficeList()
+        {
+            DlEmployee dl = new DlEmployee();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeOfficeList(userId);
+            return dt;
+        }
+        /// <summary>
+        ///Get All HOD List
+        /// </summary> 
+        /// <returns></returns>
+        [HttpGet("getempofficemappingebyid/{Id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmpOfficeById(Int32 Id)
+        {
+            DlEmployee dl = new DlEmployee();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetEmployeeOfficeById(Id);
+            return dt;
         }
 
 

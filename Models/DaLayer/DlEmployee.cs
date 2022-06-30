@@ -247,7 +247,7 @@ namespace TicketManagementApi.Models.DaLayer
                     pm.Add(new MySqlParameter("officeAddress", MySqlDbType.String) { Value = blOffice.officeAddress });
                     pm.Add(new MySqlParameter("officeEmailId", MySqlDbType.String) { Value = blOffice.officeEmailId });
                     pm.Add(new MySqlParameter("officePhoneNumber", MySqlDbType.String) { Value = blOffice.officePhoneNumber });
-                    pm.Add(new MySqlParameter("officePhoneNumber", MySqlDbType.Int16) { Value = blOffice.officePhoneNumber });
+                    pm.Add(new MySqlParameter("pinCode", MySqlDbType.String) { Value = blOffice.pinCode });
                     pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blOffice.userId });
                     pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blOffice.entryDateTime });
                     pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blOffice.clientIp });
@@ -292,7 +292,7 @@ namespace TicketManagementApi.Models.DaLayer
                     pm.Add(new MySqlParameter("officeAddress", MySqlDbType.String) { Value = blOffice.officeAddress });
                     pm.Add(new MySqlParameter("officeEmailId", MySqlDbType.String) { Value = blOffice.officeEmailId });
                     pm.Add(new MySqlParameter("officePhoneNumber", MySqlDbType.String) { Value = blOffice.officePhoneNumber });
-                    pm.Add(new MySqlParameter("officePhoneNumber", MySqlDbType.Int16) { Value = blOffice.officePhoneNumber });
+                    pm.Add(new MySqlParameter("pinCode", MySqlDbType.String) { Value = blOffice.pinCode });
                     pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blOffice.userId });
                     pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blOffice.entryDateTime });
                     pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blOffice.clientIp });
@@ -601,6 +601,49 @@ namespace TicketManagementApi.Models.DaLayer
                 empOfficeMappingIdExists = true;
             }
             return empOfficeMappingIdExists;
+        }
+
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeOfficeList(Int64 userId)
+        {
+            string query = @"SELECT eom.empOfficeMappingId,eom.stateId,s.stateNameEnglish AS stateName,
+			                        eom.districtId,d.districtNameEnglish AS districtName,eom.employeeId,e.employeeName,
+			                        eom.officeId,o.officeName,eom.designationId,ds.designationNameEnglish AS designationName,
+			                        eom.chargeType,chargeType.nameEnglish AS chargeTypeName,eom.userType,userType.nameEnglish AS userTypeName,
+			                        eom.startDate,eom.endDate,eom.active			
+				                         FROM employeeofficemapping eom 
+				                        JOIN employeemaster e ON e.employeeId=eom.employeeId
+				                        JOIN office o ON o.officeId=eom.officeId 
+				                        JOIN state s ON s.stateId=eom.stateId
+				                        JOIN district d ON d.districtId=eom.districtId
+				                        JOIN ddlcatlist chargeType ON chargeType.id=eom.chargeType AND chargeType.category='chargeType'
+					                        JOIN ddlcatlist userType ON userType.id=eom.userType AND chargeType.category='userType'
+					                        JOIN designation ds ON ds.designationId=eom.designationId WHERE eom.userId=@userId ";
+            List<MySqlParameter> pm = new();
+            pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = userId });
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
+            return dt;
+        }
+        public async Task<ReturnClass.ReturnDataTable> GetEmployeeOfficeById(Int32 empOfficeMappingId)
+        {
+            string query = @"SELECT eom.empOfficeMappingId,eom.stateId,s.stateNameEnglish AS stateName,
+			                        eom.districtId,d.districtNameEnglish AS districtName,eom.employeeId,e.employeeName,
+			                        eom.officeId,o.officeName,eom.designationId,ds.designationNameEnglish AS designationName,
+			                        eom.chargeType,chargeType.nameEnglish AS chargeTypeName,eom.userType,userType.nameEnglish AS userTypeName,
+			                        eom.startDate,eom.endDate,eom.active			
+				                         FROM employeeofficemapping eom 
+				                        JOIN employeemaster e ON e.employeeId=eom.employeeId
+				                        JOIN office o ON o.officeId=eom.officeId 
+				                        JOIN state s ON s.stateId=eom.stateId
+				                        JOIN district d ON d.districtId=eom.districtId
+				                        JOIN ddlcatlist chargeType ON chargeType.id=eom.chargeType AND chargeType.category='chargeType'
+					                        JOIN ddlcatlist userType ON userType.id=eom.userType AND chargeType.category='userType'
+					                        JOIN designation ds ON ds.designationId=eom.designationId WHERE 
+                                    eom.empOfficeMappingId=@empOfficeMappingId  ";
+            List<MySqlParameter> pm = new();
+            pm.Add(new MySqlParameter("empOfficeMappingId", MySqlDbType.Int64) { Value = empOfficeMappingId });
+
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
+            return dt;
         }
     }
 }
