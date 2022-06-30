@@ -45,6 +45,24 @@ namespace TicketManagementApi.Models.BLayer
         public string? entryDateTime { get; set; }
         
     }
+    public class BlEmpOffice
+    {
+        public Int16 stateId { get; set; }
+        public int districtId { get; set; }
+        public int? empOfficeId { get; set; }
+        public long? employeeId { get; set; }
+        public long? OfficeId { get; set; }        
+        public int designationId { get; set; }
+        public Int16 chargeType { get; set; }
+        public Int16 userType { get; set; }
+        public string? startDate { get; set; }
+        public string? endDate { get; set; }
+        public string? active { get; set; }     
+        public string? clientIp { get; set; }
+        public Int64? userId { get; set; }
+        public string? entryDateTime { get; set; }
+
+    }
 
 
 }

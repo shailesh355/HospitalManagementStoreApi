@@ -146,7 +146,7 @@ namespace TicketManagementApi.Models.DaLayer
                             FROM hodofficeregistration AS  h 
 									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId AND h.hodOfficeStateId=b.stateId
 									 JOIN ddlcatlist AS orgeType ON  orgeType.category='organizationType' AND orgeType.id=h.orgType
-									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=h.orgType
+									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=h.hodOfficeLevel
 									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode AND ds.stateId=h.hodOfficeStateId
 									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE h.hodOfficeId=@hodOfficeId ";
             List<MySqlParameter> pm = new();

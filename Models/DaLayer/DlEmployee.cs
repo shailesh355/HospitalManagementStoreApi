@@ -142,7 +142,7 @@ namespace TicketManagementApi.Models.DaLayer
             return Convert.ToInt64(employeeId);
         }
 
-        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList(Int64 userId )
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList(Int64 userId)
         {
             string query = @"SELECT e.stateId,e.employeeId,e.employeeName,e.mobileNo,e.emailId,e.workingStatus,
                                         e.recruitmentType,e.registrationYear,
@@ -406,35 +406,201 @@ namespace TicketManagementApi.Models.DaLayer
             return isHodOfficeExists;
         }
 
-        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 userId) 
+        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 userId)
         {
-            string query = @"SELECT h.hodOfficeId ,h.officeCount,h.hodOfficeName,h.baseDeptId,h.orgType,h.hodOfficeLevel,
-                                     h.hodOfficeStateId,h.hodOfficeDistrictId,h.hodOfficeDistrictname,h.hodOfficeIsUrbanRural,h.hodOfficeAddress,
-                                     h.hodOfficePinCode,h.hodOfficeEmailId,h.hodOfficePhoneNumber,h.hodOfficeFaxNumber,h.hodOfficeWebsite,
-                                     h.isRegistrationDocumentUploaded,h.isVerified,h.verificationDate,h.registrationStatus,h.registrationDate,
-                                    h.applicantName,h.applicantDesignationCode,h.applicantMobileNumber,h.applicantEmailId,h.applicantEmailId,
-                                    h.isParichayLogin
-                            FROM hodofficeregistration h WHERE h.isVerified=@isVerified AND registrationStatus=@registrationStatus 
-                            WHERE e.userId=@userId";
+            string query = @"SELECT h.hodOfficeId ,h.hodOfficeName,h.baseDeptId,b.deptNameEnglish,h.orgType,orgeType.nameEnglish AS orgTypeName,h.hodOfficeLevel,
+                                     OfficeLevel.nameEnglish AS OfficeLevelName,h.hodOfficeStateId,s.stateNameEnglish AS StateName,o.officeId,o.officeName,o.officeLevel,districtId,
+                                                districtname,urbanRural,pinCode,officeAddress, officeEmailId,officePhoneNumber
+                            FROM office AS o 
+                                      JOIN      hodofficeregistration AS  h ON o.hodOfficeId=h.hodOfficeId
+									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId AND h.hodOfficeStateId=b.stateId
+									 JOIN ddlcatlist AS orgeType ON  orgeType.category='organizationType' AND orgeType.id=h.orgType
+									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=o.officeLevel
+									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode AND ds.stateId=h.hodOfficeStateId
+									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE o.userId=@userId ";
             List<MySqlParameter> pm = new();
             pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = userId });
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
-        public async Task<ReturnClass.ReturnDataTable> GetOfficeById(Int64 employeeId)
+        public async Task<ReturnClass.ReturnDataTable> GetOfficeById(Int64 officeId)
         {
-            string query = @"SELECT e.stateId,e.employeeId,e.employeeName,e.mobileNo,e.emailId,e.workingStatus,
-                                        e.recruitmentType,e.userId,e.clientIp,e.entryDateTime,e.registrationYear,
-									workingStatus.nameEnglish AS workingStatusName,recruitmentType.nameEnglish AS recruitmentTypeName
-                            FROM employeemaster e
-                            JOIN ddlcatlist AS workingStatus ON  workingStatus.category='workingStatus' AND workingStatus.id=e.workingStatus
-							JOIN ddlcatlist AS recruitmentType ON  recruitmentType.category='recruitmentType' AND recruitmentType.id=e.recruitmentType
-                    WHERE e.employeeId=@employeeId ";
+            string query = @"SELECT h.hodOfficeId ,h.hodOfficeName,h.baseDeptId,b.deptNameEnglish,h.orgType,orgeType.nameEnglish AS orgTypeName,h.hodOfficeLevel,
+                                     OfficeLevel.nameEnglish AS OfficeLevelName,h.hodOfficeStateId,s.stateNameEnglish AS StateName,o.officeId,o.officeName,o.officeLevel,districtId,
+                                                districtname,urbanRural,pinCode,officeAddress, officeEmailId,officePhoneNumber
+                            FROM office AS o 
+                                      JOIN      hodofficeregistration AS  h ON o.hodOfficeId=h.hodOfficeId
+									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId AND h.hodOfficeStateId=b.stateId
+									 JOIN ddlcatlist AS orgeType ON  orgeType.category='organizationType' AND orgeType.id=h.orgType
+									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=o.officeLevel
+									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode AND ds.stateId=h.hodOfficeStateId
+									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE o.officeId=@officeId  ";
             List<MySqlParameter> pm = new();
-            pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = employeeId });
+            pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = officeId });
 
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
+        }
+
+        public async Task<ReturnClass.ReturnBool> SaveEmpOfficeMapping(BlEmpOffice blEmpOffice)
+        {
+            ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
+            bool empOfficeExists = await CheckEmpOfficeExists((Int32)blEmpOffice.empOfficeId, (Int64)blEmpOffice.employeeId, (Int64)blEmpOffice.OfficeId, (Int16)blEmpOffice.userType, "INSERT");
+
+            if (!empOfficeExists)
+            {
+
+                string query = @"INSERT INTO employeeofficemapping (empOfficeMappingId,chargeMappingKey,stateId,districtId,employeeId,
+                                                officeId,designationId,chargeType,userType,startDate, endDate,active,
+                                                userId,entryDateTime,clientIp)
+                                        VALUES (@empOfficeMappingId,@chargeMappingKey,@stateId,@districtId,@employeeId,
+                                                @officeId,@designationId,@chargeType,@userType,@startDate,@endDate,@active,
+                                                @userId,@entryDateTime,@clientIp)";
+
+                blEmpOffice.empOfficeId = await GenerateEmpOfficemappingId();
+
+                List<MySqlParameter> pm = new();
+                pm.Add(new MySqlParameter("empOfficeMappingId", MySqlDbType.Int32) { Value = blEmpOffice.empOfficeId });
+                pm.Add(new MySqlParameter("chargeMappingKey", MySqlDbType.Int32) { Value = 0 });
+                pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blEmpOffice.stateId }); ;
+                pm.Add(new MySqlParameter("districtId", MySqlDbType.Int16) { Value = blEmpOffice.districtId });
+                pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = blEmpOffice.employeeId });
+                pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = blEmpOffice.OfficeId });
+                pm.Add(new MySqlParameter("designationId", MySqlDbType.Int16) { Value = blEmpOffice.designationId });
+                pm.Add(new MySqlParameter("chargeType", MySqlDbType.Int16) { Value = blEmpOffice.chargeType });
+                pm.Add(new MySqlParameter("userType", MySqlDbType.Int16) { Value = blEmpOffice.userType });
+                pm.Add(new MySqlParameter("startDate", MySqlDbType.String) { Value = blEmpOffice.startDate });
+                pm.Add(new MySqlParameter("endDate", MySqlDbType.String) { Value = blEmpOffice.endDate });
+                pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = (Int16)Active.Yes });
+                pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blEmpOffice.userId });
+                pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blEmpOffice.entryDateTime });
+                pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blEmpOffice.clientIp });
+
+                rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "SaveEmployeeOfficeMapping");
+
+            }
+            else
+            {
+                rb.message = "employee Office Mapping has Already Used!!";
+            }
+            return rb;
+        }
+        public async Task<ReturnClass.ReturnBool> UpdateEmpOfficeMapping(BlEmpOffice blEmpOffice)
+        {
+            ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
+            bool empOfficeExists = await CheckEmpOfficeExists((Int32)blEmpOffice.empOfficeId, (Int64)blEmpOffice.employeeId, (Int64)blEmpOffice.OfficeId, (Int16)blEmpOffice.userType, "UPDATE");
+
+            if (!empOfficeExists)
+            {
+
+                string query = @"INSERT INTO employeeofficemappinglog
+                                    SELECT * FROM employeeofficemapping eom
+                                WHERE eom.empOfficeMappingId=@empOfficeMappingId";
+                List<MySqlParameter> pm = new();
+                pm.Add(new MySqlParameter("empOfficeMappingId", MySqlDbType.Int32) { Value = blEmpOffice.empOfficeId });
+                pm.Add(new MySqlParameter("chargeMappingKey", MySqlDbType.Int32) { Value = 0 });
+                pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blEmpOffice.stateId }); ;
+                pm.Add(new MySqlParameter("districtId", MySqlDbType.Int16) { Value = blEmpOffice.districtId });
+                pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = blEmpOffice.employeeId });
+                pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = blEmpOffice.OfficeId });
+                pm.Add(new MySqlParameter("designationId", MySqlDbType.Int16) { Value = blEmpOffice.designationId });
+                pm.Add(new MySqlParameter("chargeType", MySqlDbType.Int16) { Value = blEmpOffice.chargeType });
+                pm.Add(new MySqlParameter("userType", MySqlDbType.Int16) { Value = blEmpOffice.userType });
+                pm.Add(new MySqlParameter("startDate", MySqlDbType.String) { Value = blEmpOffice.startDate });
+                pm.Add(new MySqlParameter("endDate", MySqlDbType.String) { Value = blEmpOffice.endDate });
+                pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = blEmpOffice.active });
+                pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blEmpOffice.userId });
+                pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blEmpOffice.entryDateTime });
+                pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blEmpOffice.clientIp });
+
+                using (TransactionScope ts = new TransactionScope())
+                {
+                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "EmployeeOfficeMappingLog");
+                    query = @"UPDATE employeeofficemapping 
+                               SET chargeMappingKey=@chargeMappingKey,stateId=@stateId,
+                                    districtId=@districtId,employeeId=@employeeId,officeId=@officeId,designationId=@designationId,
+                                   chargeType=@chargeType,userType=@userType,startDate=@startDate,endDate=@endDate,active=@active,
+                                    userId=@userId,entryDateTime=@entryDateTime,clientIp=@clientIp 
+                                    WHERE empOfficeMappingId=@empOfficeMappingId;";
+
+                    blEmpOffice.empOfficeId = await GenerateEmpOfficemappingId();
+
+
+                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "UpdateEmployeeOfficeMapping");
+                    if (rb.status == true)
+                    {
+                        ts.Complete();
+                    }
+                }
+
+
+            }
+            else
+            {
+                rb.message = "employee Office Mapping has Already Used!!";
+            }
+            return rb;
+        }
+
+        /// <summary>
+        /// generates EmpOfficemappingId of 6 digits in format 2 NNNNN where 2 is prefix for EmpOfficemappingId.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<int> GenerateEmpOfficemappingId()
+        {
+            string EmpOfficemappingId = "0";
+            ReturnClass.ReturnDataTable dt = new ReturnClass.ReturnDataTable();
+            dt = await GetEmpOfficemappingId();
+            if (dt.table.Rows.Count > 0)
+            {
+                EmpOfficemappingId = dt.table.Rows[0]["empOfficeMappingId"].ToString();
+                EmpOfficemappingId = (int)idPrefix.empOfficeMappingId + EmpOfficemappingId.PadLeft(5, '0');// for type of id, example: 2 for empOfficeMappingId.
+            }
+            return Convert.ToInt32(EmpOfficemappingId);
+        }
+        /// <summary>
+        /// Get MAX EmpOfficemappingId.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnDataTable> GetEmpOfficemappingId()
+        {
+            ReturnClass.ReturnDataTable dt = new ReturnClass.ReturnDataTable();
+            try
+            {
+                string query = @"SELECT IFNULL(MAX(SUBSTRING(em.empOfficeMappingId,2,6)),0) + 1 AS empOfficeMappingId
+								    FROM employeeofficemapping em";
+
+                dt = await db.ExecuteSelectQueryAsync(query);
+            }
+            catch (Exception Ex)
+            {
+                throw Ex;
+            }
+            return dt;
+        }
+
+        public async Task<bool> CheckEmpOfficeExists(int empOfficeMappingId, Int64 employeeId, Int64 officeId, Int16 userType, string transType)
+        {
+            bool empOfficeMappingIdExists = false;
+            string query = @"SELECT eom.empOfficeMappingId
+                            FROM employeeofficemapping eom
+                            WHERE eom.employeeId=@employeeId AND eom.officeId=@officeId AND eom.userType=@userType ";
+            if (transType == "UPDATE")
+            {
+                query = query + " AND eom.empOfficeMappingId!=@empOfficeMappingId ";
+            }
+            List<MySqlParameter> pm = new();
+            pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = employeeId });
+            pm.Add(new MySqlParameter("userType", MySqlDbType.Int16) { Value = userType });
+            pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = officeId });
+            pm.Add(new MySqlParameter("empOfficeMappingId", MySqlDbType.Int32) { Value = empOfficeMappingId });
+
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
+            if (dt.table.Rows.Count > 0)
+            {
+                empOfficeMappingIdExists = true;
+            }
+            return empOfficeMappingIdExists;
         }
     }
 }

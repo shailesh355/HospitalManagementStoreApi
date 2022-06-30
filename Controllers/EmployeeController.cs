@@ -114,7 +114,7 @@ namespace TicketManagementApi.Controllers
         {
             DlEmployee dl = new DlEmployee();
             ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
-            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);           
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
             ReturnClass.ReturnBool rb = await dl.SaveOfficeDetail(appParam);
@@ -161,6 +161,95 @@ namespace TicketManagementApi.Controllers
             }
             return rs;
         }
+
+        /// <returns></returns>
+        [HttpGet("getalloffice")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList()
+        {
+            DlEmployee dl = new DlEmployee();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllOfficeList(userId);
+            return dt;
+        }
+        /// <summary>
+        ///Get All HOD List
+        /// </summary> 
+        /// <returns></returns>
+        [HttpGet("getofficebyid/{Id}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeById(Int64 Id)
+        {
+            DlEmployee dl = new DlEmployee();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetOfficeById(Id);
+            return dt;
+        }
+
+        /// <summary>
+        ///Save Employee Office Mapping
+        /// </summary>
+        /// <param name="appParam"></param>        
+        /// <returns></returns>
+        [HttpPost("saveempofficemapping")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnString> SaveEmployeeOffice([FromBody] BlEmpOffice appParam)
+        {
+            DlEmployee dl = new DlEmployee();
+            ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            ReturnClass.ReturnBool rb = await dl.SaveEmpOfficeMapping(appParam);
+            if (rb.status)
+            {
+                rs.message = "Data Saved Successfully";
+                rs.status = true;
+                rs.value = rb.message;
+            }
+            else
+            {
+                //====Failure====
+                rs.message = "Failed to save data " + rb.message;
+                rs.status = false;
+            }
+            return rs;
+        }
+
+        /// <summary>
+        ///Update Employee Office Mapping
+        /// </summary>
+        /// <param name="appParam"></param>        
+        /// <returns></returns>
+        [HttpPost("updateempofficemapping")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnString> UpdateEmployeeOffice([FromBody] BlEmpOffice appParam)
+        {
+            DlEmployee dl = new DlEmployee();
+            ReturnClass.ReturnString rs = new ReturnClass.ReturnString();
+            appParam.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            appParam.userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            appParam.entryDateTime = DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss");
+            ReturnClass.ReturnBool rb = await dl.UpdateEmpOfficeMapping(appParam);
+            if (rb.status)
+            {
+                rs.message = "Data Saved Successfully";
+                rs.status = true;
+                rs.value = rb.message;
+            }
+            else
+            {
+                //====Failure====
+                rs.message = "Failed to save data " + rb.message;
+                rs.status = false;
+            }
+            return rs;
+        }
+
+
+
 
     }
 }
