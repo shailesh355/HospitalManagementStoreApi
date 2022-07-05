@@ -13,7 +13,7 @@ namespace TicketManagementApi.Models.Balayer
         public string emailId { get; set; }
         public string? userName { get; set; }
         public string password { get; set; }
-        public string? role { get; set; }
+        public Int16? role { get; set; }
         public bool? active { get; set; }
         public string? token { get; set; }
         public string? mobileNo { get; set; }
@@ -27,6 +27,8 @@ namespace TicketManagementApi.Models.Balayer
         //for captcha
         public string? captchaId { get; set; }
         public string? userEnteredCaptcha { get; set; }
+        public long? hodOfficeId { get; set; }
+        public string? hodOfficeName { get; set; }
         public User()
         {
             this.isAuthenticated = false;

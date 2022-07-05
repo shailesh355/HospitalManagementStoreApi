@@ -340,7 +340,7 @@ namespace TicketManagementApi.Models.DaLayer
             string OfficeId = "0";
             try
             {
-                string qr = @"SELECT IFNULL(MAX(SUBSTRING(o.office,12,13)),0) + 1 AS OfficeId
+                string qr = @"SELECT IFNULL(MAX(SUBSTRING(o.officeId,12,13)),0) + 1 AS OfficeId
 								FROM office o 
 							WHERE o.hodOfficeId = @hodOfficeId";
 

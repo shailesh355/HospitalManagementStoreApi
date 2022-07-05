@@ -14,5 +14,14 @@ namespace TicketManagementApi.Models.BLayer
             Yes = 1
         }
 
+        public enum CRUD
+        {
+            Create = 1,
+            Read = 2,
+            Update = 3,
+            Delete = 4,
+        }
+
+
     }
 }

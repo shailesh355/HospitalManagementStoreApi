@@ -215,36 +215,60 @@ namespace TicketManagementApi.Models.DaLayer
                 MySqlParameter[] pm = new MySqlParameter[]
                 {
                     new MySqlParameter("emailid",MySqlDbType.String) { Value = emailid},
-                    new MySqlParameter("password",MySqlDbType.String) { Value = password},
+                    //new MySqlParameter("password",MySqlDbType.String) { Value = password},
                     new MySqlParameter("active",MySqlDbType.Int16) { Value = (int)Active.Yes}
                 };
-                string where = @"  AND l.password = @password ";
-                string query = @" SELECT l.userName, l.userId, l.changePassword, l.isDisabled, l.userRole, l.isSingleWindowUser
+                //string where = @"  AND l.password = @password ";
+                string query = @" SELECT l.userName, l.userId, l.password, l.changePassword, l.isDisabled, l.userRole, l.isSingleWindowUser
                                   FROM userlogin l
                                   WHERE l.emailId=@emailId AND l.active = @active ";
-                query = !isSwsUser ? query + where : query;
+                //query = !isSwsUser ? query + where : query;
+                query = !isSwsUser ? query : query;
 
                 dt = await db.ExecuteSelectQueryAsync(query, pm);
                 if (dt.table.Rows.Count > 0)
                 {
-                    DataRow dr = dt.table.Rows[0];
-                    user.userId = Convert.ToInt64(dr["userId"]);
-                    user.userName = dr["userName"].ToString();
-                    user.role = dr["userRole"].ToString();
-
-                    Enum.TryParse(dr["isSingleWindowUser"].ToString(), true, out isSingleWindowUser);
-                    user.isSingleWindowUser = isSingleWindowUser;
-
-                    Enum.TryParse(dr["changePassword"].ToString(), true, out changePassword);
-                    user.forceChangePassword = changePassword;
-
-                    Enum.TryParse(dr["isDisabled"].ToString(), true, out isDisabled);
-                    if (isDisabled == YesNo.Yes)
-                        user.message = "Account has been disabled";
-                    else
+                    if (dt.table.Rows[0]["password"].ToString().Equals(password, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        user.isAuthenticated = true;
-                        user.message = "Login successfull";
+                        DataRow dr = dt.table.Rows[0];
+                        user.userId = Convert.ToInt64(dr["userId"]);
+                        user.userName = dr["userName"].ToString();
+                        user.role = Convert.ToInt16(dr["userRole"].ToString());
+
+                        Enum.TryParse(dr["isSingleWindowUser"].ToString(), true, out isSingleWindowUser);
+                        user.isSingleWindowUser = isSingleWindowUser;
+
+                        Enum.TryParse(dr["changePassword"].ToString(), true, out changePassword);
+                        user.forceChangePassword = changePassword;
+
+                        Enum.TryParse(dr["isDisabled"].ToString(), true, out isDisabled);
+                        if (isDisabled == YesNo.Yes)
+                            user.message = "Account has been disabled";
+                        else
+                        {
+                            user.isAuthenticated = true;
+                            user.message = "Login successfull";
+                        }
+                        user.hodOfficeId = 0;
+                        user.hodOfficeName = null;
+                        if (user.role == (Int16)UserRole.Nodal)
+                        {
+                            pm = new MySqlParameter[]
+                           {
+                            new MySqlParameter("userId",MySqlDbType.String) { Value = user.userId},
+                            new MySqlParameter("isVerified",MySqlDbType.Int16) { Value = (int)Active.Yes}
+                           };
+                            query = @" SELECT h.hodOfficeId,h.hodOfficeName FROM  hodoffice ho
+                                     JOIN hodofficeregistration h ON h.hodOfficeId=ho.hodOfficeId AND h.isVerified=@isVerified
+                                     WHERE ho.loginId= @userId; ";
+                            dt = await db.ExecuteSelectQueryAsync(query, pm);
+                            if (dt.table.Rows.Count > 0)
+                            {
+                                dr = dt.table.Rows[0];
+                                user.hodOfficeId = Convert.ToInt64(dr["hodOfficeId"]);
+                                user.hodOfficeName = dr["hodOfficeName"].ToString();
+                            }
+                        }
                     }
 
 

@@ -34,7 +34,7 @@ namespace TicketManagementApi.Models.DaLayer
             var sessionDuration = rbKey.status ? Convert.ToInt16(rbKey.message) : 0;
 
             List<Claim> claim = new List<Claim>();
-            claim.Add(new Claim(ClaimTypes.Role, user.role));
+            claim.Add(new Claim(ClaimTypes.Role, user.role.ToString()));
             claim.Add(new Claim("userId", user.userId.ToString()));
            // claim.Add(new Claim("isSingleWindowUser", user.isSingleWindowUser.ToString()));
 
