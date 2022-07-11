@@ -18,14 +18,15 @@ namespace TicketManagementApi.Models.DaLayer
                 isofficeExists = await CheckEmployeeMobileExists(blEmployee.emailId, "INSERT", (Int64)blEmployee.employeeId);
                 if (!isofficeExists)
                 {
-                    string query = @"INSERT INTO employeemaster (stateId,employeeId,employeeName,mobileNo,emailId,workingStatus,
+                    string query = @"INSERT INTO employeemaster (hodOfficeId,stateId,employeeId,employeeName,mobileNo,emailId,workingStatus,
                                                 recruitmentType,userId,clientIp,entryDateTime, registrationYear)
-                                        VALUES (@stateId,@employeeId,@employeeName,@mobileNo,@emailId,@workingStatus,
+                                        VALUES (@hodOfficeId,@stateId,@employeeId,@employeeName,@mobileNo,@emailId,@workingStatus,
                                                 @recruitmentType,@userId,@clientIp,@entryDateTime,@registrationYear)";
 
                     blEmployee.employeeId = await GetEmployeeId((int)blEmployee.registrationYear);
 
                     List<MySqlParameter> pm = new();
+                    pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blEmployee.hodOfficeId });
                     pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = blEmployee.employeeId });
                     pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blEmployee.stateId });
                     pm.Add(new MySqlParameter("employeeName", MySqlDbType.String) { Value = blEmployee.employeeName });
@@ -66,6 +67,7 @@ namespace TicketManagementApi.Models.DaLayer
                                     SELECT * FROM employeemaster e
                                         WHERE e.employeeId=@employeeId";
                     List<MySqlParameter> pm = new();
+                    pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blEmployee.hodOfficeId });
                     pm.Add(new MySqlParameter("employeeId", MySqlDbType.Int64) { Value = blEmployee.employeeId });
                     pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blEmployee.stateId });
                     pm.Add(new MySqlParameter("employeeName", MySqlDbType.String) { Value = blEmployee.employeeName });
@@ -87,7 +89,7 @@ namespace TicketManagementApi.Models.DaLayer
                                SET stateId=@stateId,employeeName=@employeeName,mobileNo=@mobileNo,emailId=@emailId,
                                workingStatus=@workingStatus,recruitmentType=@recruitmentType,userId=@userId,clientIp=@clientIp,
                                 entryDateTime=@entryDateTime 
-                                WHERE employeeId=@employeeId";
+                                WHERE employeeId=@employeeId AND hodOfficeId=@hodOfficeId";
                             rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "employeeUpdate");
                             if (rb.status == true)
                             {
@@ -142,7 +144,7 @@ namespace TicketManagementApi.Models.DaLayer
             return Convert.ToInt64(employeeId);
         }
 
-        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList(Int64 userId)
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList(Int64 hodOfficeId)
         {
             string query = @"SELECT e.stateId,e.employeeId,e.employeeName,e.mobileNo,e.emailId,e.workingStatus,
                                         e.recruitmentType,e.registrationYear,
@@ -151,9 +153,9 @@ namespace TicketManagementApi.Models.DaLayer
                             JOIN ddlcatlist AS workingStatus ON  workingStatus.category='workingStatus' AND workingStatus.id=e.workingStatus
 							JOIN ddlcatlist AS recruitmentType ON  recruitmentType.category='recruitmentType' 
                             AND recruitmentType.id=e.recruitmentType 
-                            WHERE e.userId=@userId";
+                            WHERE e.hodOfficeId=@hodOfficeId";
             List<MySqlParameter> pm = new();
-            pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = userId });
+            pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = hodOfficeId });
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
@@ -237,10 +239,10 @@ namespace TicketManagementApi.Models.DaLayer
 
                     List<MySqlParameter> pm = new();
                     pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blOffice.hodOfficeId });
-                    pm.Add(new MySqlParameter("officeId", MySqlDbType.Int16) { Value = blOffice.OfficeId });
+                    pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = blOffice.OfficeId });
                     pm.Add(new MySqlParameter("officeName", MySqlDbType.String) { Value = blOffice.OfficeName });
-                    pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.String) { Value = blOffice.baseDeptId });
-                    pm.Add(new MySqlParameter("officeLevel", MySqlDbType.String) { Value = blOffice.officeLevel });
+                    pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.Int16) { Value = blOffice.baseDeptId });
+                    pm.Add(new MySqlParameter("officeLevel", MySqlDbType.Int16) { Value = blOffice.officeLevel });
                     pm.Add(new MySqlParameter("districtId", MySqlDbType.Int16) { Value = blOffice.districtId });
                     pm.Add(new MySqlParameter("districtname", MySqlDbType.String) { Value = blOffice.districtname });
                     pm.Add(new MySqlParameter("urbanRural", MySqlDbType.Int16) { Value = blOffice.urbanRural });
@@ -250,7 +252,7 @@ namespace TicketManagementApi.Models.DaLayer
                     pm.Add(new MySqlParameter("pinCode", MySqlDbType.String) { Value = blOffice.pinCode });
                     pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blOffice.userId });
                     pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blOffice.entryDateTime });
-                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blOffice.clientIp });
+                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.String) { Value = blOffice.clientIp });
 
                     rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "OfficeEntry");
                 }
@@ -282,10 +284,10 @@ namespace TicketManagementApi.Models.DaLayer
                                         WHERE officeId=@officeId;";
                     List<MySqlParameter> pm = new();
                     pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = blOffice.hodOfficeId });
-                    pm.Add(new MySqlParameter("officeId", MySqlDbType.Int16) { Value = blOffice.OfficeId });
+                    pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = blOffice.OfficeId });
                     pm.Add(new MySqlParameter("officeName", MySqlDbType.String) { Value = blOffice.OfficeName });
-                    pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.String) { Value = blOffice.baseDeptId });
-                    pm.Add(new MySqlParameter("officeLevel", MySqlDbType.String) { Value = blOffice.officeLevel });
+                    pm.Add(new MySqlParameter("baseDeptId", MySqlDbType.Int16) { Value = blOffice.baseDeptId });
+                    pm.Add(new MySqlParameter("officeLevel", MySqlDbType.Int16) { Value = blOffice.officeLevel });
                     pm.Add(new MySqlParameter("districtId", MySqlDbType.Int16) { Value = blOffice.districtId });
                     pm.Add(new MySqlParameter("districtname", MySqlDbType.String) { Value = blOffice.districtname });
                     pm.Add(new MySqlParameter("urbanRural", MySqlDbType.Int16) { Value = blOffice.urbanRural });
@@ -295,7 +297,7 @@ namespace TicketManagementApi.Models.DaLayer
                     pm.Add(new MySqlParameter("pinCode", MySqlDbType.String) { Value = blOffice.pinCode });
                     pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blOffice.userId });
                     pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blOffice.entryDateTime });
-                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blOffice.clientIp });
+                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.String) { Value = blOffice.clientIp });
 
                     using (TransactionScope ts = new TransactionScope())
                     {
@@ -406,20 +408,20 @@ namespace TicketManagementApi.Models.DaLayer
             return isHodOfficeExists;
         }
 
-        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 userId)
+        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 hodOfficeId)
         {
             string query = @"SELECT h.hodOfficeId ,h.hodOfficeName,h.baseDeptId,b.deptNameEnglish,h.orgType,orgeType.nameEnglish AS orgTypeName,h.hodOfficeLevel,
                                      OfficeLevel.nameEnglish AS OfficeLevelName,h.hodOfficeStateId,s.stateNameEnglish AS StateName,o.officeId,o.officeName,o.officeLevel,districtId,
                                                 districtname,urbanRural,pinCode,officeAddress, officeEmailId,officePhoneNumber
                             FROM office AS o 
-                                      JOIN      hodofficeregistration AS  h ON o.hodOfficeId=h.hodOfficeId
-									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId AND h.hodOfficeStateId=b.stateId
+                                      JOIN hodofficeregistration AS  h ON o.hodOfficeId=h.hodOfficeId
+									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId
 									 JOIN ddlcatlist AS orgeType ON  orgeType.category='organizationType' AND orgeType.id=h.orgType
 									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=o.officeLevel
-									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode AND ds.stateId=h.hodOfficeStateId
-									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE o.userId=@userId ";
+									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode 
+									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE o.hodOfficeId=@hodOfficeId ";
             List<MySqlParameter> pm = new();
-            pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = userId });
+            pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = hodOfficeId });
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
@@ -429,11 +431,11 @@ namespace TicketManagementApi.Models.DaLayer
                                      OfficeLevel.nameEnglish AS OfficeLevelName,h.hodOfficeStateId,s.stateNameEnglish AS StateName,o.officeId,o.officeName,o.officeLevel,districtId,
                                                 districtname,urbanRural,pinCode,officeAddress, officeEmailId,officePhoneNumber
                             FROM office AS o 
-                                      JOIN      hodofficeregistration AS  h ON o.hodOfficeId=h.hodOfficeId
-									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId AND h.hodOfficeStateId=b.stateId
+                                      JOIN hodofficeregistration AS  h ON o.hodOfficeId=h.hodOfficeId
+									 JOIN  basedepartment AS b ON b.deptId=h.baseDeptId 
 									 JOIN ddlcatlist AS orgeType ON  orgeType.category='organizationType' AND orgeType.id=h.orgType
 									 JOIN ddlcatlist AS OfficeLevel ON  OfficeLevel.category='officeLevel' AND OfficeLevel.id=o.officeLevel
-									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode AND ds.stateId=h.hodOfficeStateId
+									 JOIN designation AS ds ON  ds.designationId=h.applicantDesignationCode 
 									 JOIN  state AS s ON s.stateId=h.hodOfficeStateId WHERE o.officeId=@officeId  ";
             List<MySqlParameter> pm = new();
             pm.Add(new MySqlParameter("officeId", MySqlDbType.Int64) { Value = officeId });
@@ -603,7 +605,7 @@ namespace TicketManagementApi.Models.DaLayer
             return empOfficeMappingIdExists;
         }
 
-        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeOfficeList(Int64 userId)
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeOfficeList(Int64 hodOfficeId)
         {
             string query = @"SELECT eom.empOfficeMappingId,eom.stateId,s.stateNameEnglish AS stateName,
 			                        eom.districtId,d.districtNameEnglish AS districtName,eom.employeeId,e.employeeName,
@@ -612,14 +614,14 @@ namespace TicketManagementApi.Models.DaLayer
 			                        eom.startDate,eom.endDate,eom.active			
 				                         FROM employeeofficemapping eom 
 				                        JOIN employeemaster e ON e.employeeId=eom.employeeId
-				                        JOIN office o ON o.officeId=eom.officeId 
+				                        JOIN office o ON o.officeId=eom.officeId AND o.hodOfficeId =e.hodOfficeId
 				                        JOIN state s ON s.stateId=eom.stateId
 				                        JOIN district d ON d.districtId=eom.districtId
 				                        JOIN ddlcatlist chargeType ON chargeType.id=eom.chargeType AND chargeType.category='chargeType'
 					                        JOIN ddlcatlist userType ON userType.id=eom.userType AND chargeType.category='userType'
-					                        JOIN designation ds ON ds.designationId=eom.designationId WHERE eom.userId=@userId ";
+					                        JOIN designation ds ON ds.designationId=eom.designationId WHERE o.hodOfficeId=@hodOfficeId ";
             List<MySqlParameter> pm = new();
-            pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = userId });
+            pm.Add(new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value = hodOfficeId });
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
@@ -644,6 +646,36 @@ namespace TicketManagementApi.Models.DaLayer
 
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
+        }
+
+        public async Task<List<ListValue>> GetEmployeeByDistrict(Int64 hodOfficeId)
+        {
+
+            string query = @"SELECT e.employeeId AS id,e.employeeName AS name
+                            FROM employeemaster e                            
+                            WHERE e.hodOfficeId=@hodOfficeId";
+            MySqlParameter[] pm = new MySqlParameter[]
+            {
+                new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value= hodOfficeId }
+            };
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm);
+            List<ListValue> lv = Helper.GetGenericDropdownList(dt.table);
+            return lv;
+        }
+        public async Task<List<ListValue>> GetOfficeByDistrict(Int64 hodOfficeId, Int16 districtId)
+        {
+
+            string query = @"SELECT o.officeId  AS id,o.officeName AS name
+                            FROM office AS o                                       								 
+									 WHERE o.hodOfficeId=@hodOfficeId AND o.districtId=@districtId ";
+            MySqlParameter[] pm = new MySqlParameter[]
+            {
+                new MySqlParameter("districtId", MySqlDbType.Int16) { Value= districtId },
+                new MySqlParameter("hodOfficeId", MySqlDbType.Int64) { Value= hodOfficeId }
+            };
+            ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm);
+            List<ListValue> lv = Helper.GetGenericDropdownList(dt.table);
+            return lv;
         }
     }
 }

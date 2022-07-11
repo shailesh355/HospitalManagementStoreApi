@@ -9,6 +9,7 @@ namespace TicketManagementApi.Models.DaLayer
     public class DlMainContact
     {
         readonly DBConnection db = new();
+        ReturnClass.ReturnDataTable dt = new();
         public async Task<ReturnClass.ReturnBool> CUDOperation(BlMainContact bl)
         {
             ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
@@ -104,6 +105,29 @@ namespace TicketManagementApi.Models.DaLayer
             if (dt.table.Rows.Count > 0)
                 isAccountExists = true;
             return isAccountExists;
+        }
+        public async Task<ReturnClass.ReturnDataTable> GetMainContactDetail(Int64 hospitalRegNo)
+        {
+            try
+            {
+                MySqlParameter[] pm = new MySqlParameter[]
+                   {
+                         new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = hospitalRegNo },
+                   };
+                string qr = @"
+SELECT mc.mainContactId,mc.hospitalRegNo,mc.designationId,mc.designationName,
+		mc.contactPersonName,mc.mobileNo,mc.emailId,cat.nameEnglish,cat.grouping,cat.category 
+		FROM maincontact AS mc
+			INNER JOIN ddlcatlist AS cat ON mc.mainContactId = cat.id
+			AND cat.category ='designation'
+			WHERE clb.hospitalRegNo=@hospitalRegNo   
+			ORDER BY cat.sortOrder";
+                dt = await db.ExecuteSelectQueryAsync(qr, pm);
+            }
+            catch (Exception ex)
+            {
+            }
+            return dt;
         }
 
     }

@@ -42,5 +42,22 @@ namespace TicketManagementApi.Controllers
             return rs;
         }
 
+
+        /// <summary>
+        /// Get financial details 
+        /// </summary>
+        /// <param name="hospitalRegNo"></param>        
+        /// <returns></returns>
+        [HttpGet("getfinancedetail/{hospitalRegNo}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetFinancialDetail(Int64 hospitalRegNo)
+        {
+            DlFinancialInformation dl = new();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetFinancialDetail(hospitalRegNo);
+            return dt;
+        }
+
     }
 }

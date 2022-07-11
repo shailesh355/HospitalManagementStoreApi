@@ -77,14 +77,14 @@ namespace TicketManagementApi.Controllers
         /// </summary>         
 
         /// <returns></returns>
-        [HttpGet("getallemployee")]
+        [HttpGet("getallemployee/{Id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList()
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmployeeList(Int64 Id)
         {
             DlEmployee dl = new DlEmployee();
             //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
-            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeList(userId);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeList(Id);
             return dt;
         }
         /// <summary>
@@ -165,14 +165,14 @@ namespace TicketManagementApi.Controllers
         }
 
         /// <returns></returns>
-        [HttpGet("getalloffice")]
+        [HttpGet("getalloffice/{Id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList()
+        public async Task<ReturnClass.ReturnDataTable> GetAllOfficeList(Int64 Id)
         {
             DlEmployee dl = new DlEmployee();
             //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
-            ReturnClass.ReturnDataTable dt = await dl.GetAllOfficeList(userId);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllOfficeList(Id);
             return dt;
         }
         /// <summary>
@@ -253,14 +253,14 @@ namespace TicketManagementApi.Controllers
         }
 
         /// <returns></returns>
-        [HttpGet("getallempofficemapping")]
+        [HttpGet("getallempofficemapping/{Id}")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
-        public async Task<ReturnClass.ReturnDataTable> GetAllEmpOfficeList()
+        public async Task<ReturnClass.ReturnDataTable> GetAllEmpOfficeList(Int64 Id)
         {
             DlEmployee dl = new DlEmployee();
             //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
-            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeOfficeList(userId);
+            ReturnClass.ReturnDataTable dt = await dl.GetAllEmployeeOfficeList(Id);
             return dt;
         }
         /// <summary>
@@ -276,6 +276,35 @@ namespace TicketManagementApi.Controllers
             Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
             ReturnClass.ReturnDataTable dt = await dl.GetEmployeeOfficeById(Id);
             return dt;
+        }
+        /// <summary>
+        /// Get List of Employee based 
+        /// </summary>
+        /// <param name="hodOfficeId"></param>
+        
+        /// <returns></returns>
+        [HttpGet("getemloyeebydistrict/{hodOfficeId}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<List<ListValue>> GetEmloyeeByDistrict(Int64 hodOfficeId)
+        {
+            DlEmployee dl = new DlEmployee();
+            List<ListValue> lv = await dl.GetEmployeeByDistrict(hodOfficeId);
+            return lv;
+        }
+
+        /// <summary>
+        /// Get List of office based on district
+        /// </summary>
+        /// <param name="hodOfficeId"></param>
+        /// <param name="districtId"></param>
+        /// <returns></returns>
+        [HttpGet("getofficebydistrict/{hodOfficeId}/{districtId}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<List<ListValue>> GetOfficeByDistrict(Int64 hodOfficeId ,Int16 districtId)
+        {
+            DlEmployee dl = new DlEmployee();
+            List<ListValue> lv = await dl.GetOfficeByDistrict(hodOfficeId, districtId);
+            return lv;
         }
 
 

@@ -5,6 +5,7 @@ namespace TicketManagementApi.Models.BLayer
 {
     public class BlEmployee
     {
+        public long? hodOfficeId { get; set; }
         public Int16 stateId { get; set; }
         public long? employeeId { get; set; }
         public string employeeName { get; set; }

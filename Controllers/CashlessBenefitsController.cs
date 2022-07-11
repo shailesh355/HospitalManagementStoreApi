@@ -42,5 +42,21 @@ namespace TicketManagementApi.Controllers
             }
             return rs;
         }
+
+        /// <summary>
+        /// Get cashless details 
+        /// </summary>
+        /// <param name="hospitalRegNo"></param>        
+        /// <returns></returns>
+        [HttpGet("getcashlessdetail/{hospitalRegNo}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetCashlessDetail(Int64 hospitalRegNo)
+        {
+            DlCashlessBenefits dl = new();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetCashlessDetail(hospitalRegNo);
+            return dt;
+        }
     }
 }

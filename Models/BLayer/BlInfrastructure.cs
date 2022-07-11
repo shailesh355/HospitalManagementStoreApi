@@ -12,8 +12,10 @@
     public class BlInfrastructureItems
     {
         public Int32 infrastructureId { get; set; }
-        public long? infrastructureFacilitiesId { get; set; }
-        public string infrastructureFacilities { get; set; }
+        public Int16? infrastructureFacilitiesId { get; set; }
+        public string? infrastructureFacilities { get; set; }
+        public Int16 medicalSupportId { get; set; }
+        public string? medicalSupportName { get; set; }
         public string remarks { get; set; }
     }
 }

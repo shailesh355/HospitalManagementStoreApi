@@ -9,6 +9,8 @@ namespace TicketManagementApi.Models.DaLayer
     public class DlFinancialInformation
     {
         readonly DBConnection db = new();
+        ReturnClass.ReturnDataTable dt = new();
+
         public async Task<ReturnClass.ReturnBool> CUDOperation(BlFinancialInformation bl)
         {
             ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
@@ -64,6 +66,27 @@ namespace TicketManagementApi.Models.DaLayer
                 }
             }
             return rb;
+        }
+
+        public async Task<ReturnClass.ReturnDataTable> GetFinancialDetail(Int64 hospitalRegNo)
+        {
+            try
+            {
+                MySqlParameter[] pm = new MySqlParameter[]
+                   {
+                         new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = hospitalRegNo },
+                   };
+                string qr = @"SELECT fi.financialInformationId,fi.hospitalRegNo,fi.accountNumber,fi.beneficiaryName,fi.accountTypeId,fi.accountTypeName,
+		fi.bankName,fi.bankAddress,fi.IFSCCode,fi.PANNo,fi.nameOnPAN,fi.TDSExemptionPercent,fi.TDSExemptionLimit,fi.TDSExemptionPeriod	
+		FROM financialinformation AS fi
+			WHERE clb.hospitalRegNo=@hospitalRegNo   
+			ORDER BY cat.sortOrder";
+                dt = await db.ExecuteSelectQueryAsync(qr, pm);
+            }
+            catch (Exception ex)
+            {
+            }
+            return dt;
         }
     }
 }

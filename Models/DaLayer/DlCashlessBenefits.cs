@@ -9,6 +9,7 @@ namespace TicketManagementApi.Models.DaLayer
     public class DlCashlessBenefits
     {
         readonly DBConnection db = new();
+        ReturnClass.ReturnDataTable dt = new();
         public async Task<ReturnClass.ReturnBool> CUDOperation(BlCashlessBenefits bl)
         {
             ReturnClass.ReturnBool rb = new ReturnClass.ReturnBool();
@@ -50,5 +51,28 @@ namespace TicketManagementApi.Models.DaLayer
             }
                 return rb;
         }
+
+            public async Task<ReturnClass.ReturnDataTable> GetCashlessDetail(Int64 hospitalRegNo)
+            {
+                try
+                {
+                    MySqlParameter[] pm = new MySqlParameter[]
+                       {
+                         new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = hospitalRegNo },
+                       };
+                    string qr = @"SELECT clb.cashlessBenefitsId, clb.hospitalRegNo, clb.discountPercent, cat.nameEnglish, cat.grouping, cat.category
+                                        FROM cashlessbenefits AS clb
+                                            INNER JOIN ddlcatlist AS cat ON clb.cashlessBenefitsId = cat.id
+                                            AND cat.category IN ('ipdServices','opdServices','waiverOffered')
+		                            WHERE clb.hospitalRegNo=@hospitalRegNo   
+			                        ORDER BY cat.sortOrder";
+                    dt = await db.ExecuteSelectQueryAsync(qr, pm);
+                }
+                catch (Exception ex)
+                {
+                }
+                return dt;
+            }
+        
     }
 }

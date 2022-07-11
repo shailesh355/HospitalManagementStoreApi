@@ -41,5 +41,21 @@ namespace TicketManagementApi.Controllers
             }
             return rs;
         }
+
+        /// <summary>
+        /// Get bed composition details 
+        /// </summary>
+        /// <param name="hospitalRegNo"></param>        
+        /// <returns></returns>
+        [HttpGet("getbedcompdetail/{hospitalRegNo}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetBedCompositionDetail(Int64 hospitalRegNo)
+        {
+            DlBedComposition dl = new();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetBedCompositionDetail(hospitalRegNo);
+            return dt;
+        }
     }
 }

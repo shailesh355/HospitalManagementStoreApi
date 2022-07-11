@@ -3,12 +3,16 @@ using MySql.Data.MySqlClient;
 using System.Transactions;
 using TicketManagementApi.Models.BLayer;
 using static TicketManagementApi.Models.BLayer.BlCommon;
+using System.Net;
+using Newtonsoft.Json;
+using System.Data;
 
 namespace TicketManagementApi.Models.DaLayer
 {
     public class DlBedComposition
     {
         readonly DBConnection db = new();
+        ReturnClass.ReturnDataTable dt = new();
         public async Task<ReturnClass.ReturnBool> CUDOperation(BlBedComposition bl)
         {
             MySqlParameter[] pm;
@@ -50,6 +54,28 @@ namespace TicketManagementApi.Models.DaLayer
                 }
             }
             return rb;
+        }
+
+        public async Task<ReturnClass.ReturnDataTable> GetBedCompositionDetail(Int64 hospitalRegNo)
+        {
+            try
+            {
+                MySqlParameter[] pm = new MySqlParameter[]
+                   {
+                     new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = hospitalRegNo },
+                   };
+                string qr = @"SELECT bc.bedCompositionId,bc.hospitalRegNo,bc.noOfBeds,bc.rentPerDay,cat.nameEnglish 
+		                        FROM bedcomposition AS bc
+			                        INNER JOIN ddlcatlist AS cat ON bc.bedCompositionId = cat.id
+			                        AND cat.category='bedComposition' 
+		                        WHERE bc.hospitalRegNo=@hospitalRegNo   
+			                        ORDER BY cat.sortOrder";
+                dt = await db.ExecuteSelectQueryAsync(qr, pm);
+            }
+            catch (Exception ex)
+            {
+            }
+            return dt;
         }
     }
 }

@@ -25,6 +25,8 @@ namespace TicketManagementApi.Models.BLayer
         public string? entryDateTime { get; set; }
         public Int64? userId { get; set; }
         public int registrationYear { get; set; }
+        public string? password { get; set; }
+
     }
 
 

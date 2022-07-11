@@ -41,5 +41,21 @@ namespace TicketManagementApi.Controllers
             }
             return rs;
         }
+
+        /// <summary>
+        /// Get Infrastructure details 
+        /// </summary>
+        /// <param name="hospitalRegNo"></param>        
+        /// <returns></returns>
+        [HttpGet("getinfradetail/{hospitalRegNo}")]
+        [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+        public async Task<ReturnClass.ReturnDataTable> GetInfrastructureDetail(Int64 hospitalRegNo)
+        {
+            DlInfrastructure dl = new();
+            //string clientIP = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            Int64 userId = Convert.ToInt64(User.FindFirst("userId")?.Value);
+            ReturnClass.ReturnDataTable dt = await dl.GetInfrastructureDetail(hospitalRegNo);
+            return dt;
+        }
     }
 }

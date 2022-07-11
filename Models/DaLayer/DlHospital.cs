@@ -21,34 +21,43 @@ namespace TicketManagementApi.Models.DaLayer
                 isExists = await CheckEmailExistAsync(blHospital.emailId, "INSERT", (Int64)blHospital.hospitalRegNo);
                 if (!isExists)
                 {
-                    string query = @"INSERT INTO hospitalregistration (hospitalRegNo,hospitalNameEnglish,hospitalNameLocal,stateId,districtId,address,mobileNo,
+                    using (TransactionScope ts = new TransactionScope())
+                    {
+                        string query = @"INSERT INTO hospitalregistration (hospitalRegNo,hospitalNameEnglish,hospitalNameLocal,stateId,districtId,address,mobileNo,
                                                  emailId,active,isVerified,verificationDate,verifiedByLoginId,registrationStatus,userId, 
                                                 entryDateTime, clientIp)
                                         VALUES (@hospitalRegNo,@hospitalNameEnglish,@hospitalNameLocal,@stateId, @districtId, @address, @mobileNo,
                                                  @emailId,@active, @isVerified,@verificationDate,@verifiedByLoginId,@registrationStatus,@userId, 
                                                 @entryDateTime,@clientIp)";
-                    blHospital.hospitalRegNo = await GetHospitalId(blHospital.registrationYear);
+                        blHospital.hospitalRegNo = await GetHospitalId(blHospital.registrationYear);
 
 
-                    List<MySqlParameter> pm = new();
-                    pm.Add(new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = blHospital.hospitalRegNo });
-                    pm.Add(new MySqlParameter("hospitalNameEnglish", MySqlDbType.String) { Value = blHospital.hospitalNameEnglish });
-                    pm.Add(new MySqlParameter("hospitalNameLocal", MySqlDbType.String) { Value = blHospital.hospitalNameLocal });
-                    pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blHospital.stateId });
-                    pm.Add(new MySqlParameter("districtId", MySqlDbType.Int16) { Value = blHospital.districtId });
-                    pm.Add(new MySqlParameter("address", MySqlDbType.String) { Value = blHospital.address });
-                    pm.Add(new MySqlParameter("mobileNo", MySqlDbType.String) { Value = blHospital.mobileNo });
-                    pm.Add(new MySqlParameter("emailId", MySqlDbType.String) { Value = blHospital.emailId });
-                    pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = blHospital.active });
-                    pm.Add(new MySqlParameter("isVerified", MySqlDbType.Int16) { Value = (int)blHospital.isVerified });
-                    pm.Add(new MySqlParameter("verifiedByLoginId", MySqlDbType.Int64) { Value = blHospital.userId });
-                    pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (Int16)RegistrationStatus.Approved });
-                    pm.Add(new MySqlParameter("registrationYear", MySqlDbType.Int32) { Value = blHospital.registrationYear });
-                    pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blHospital.clientIp });
-                    pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blHospital.userId });
-                    pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blHospital.entryDateTime });
+                        List<MySqlParameter> pm = new();
+                        pm.Add(new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = blHospital.hospitalRegNo });
+                        pm.Add(new MySqlParameter("hospitalNameEnglish", MySqlDbType.String) { Value = blHospital.hospitalNameEnglish });
+                        pm.Add(new MySqlParameter("hospitalNameLocal", MySqlDbType.String) { Value = blHospital.hospitalNameLocal });
+                        pm.Add(new MySqlParameter("stateId", MySqlDbType.Int16) { Value = blHospital.stateId });
+                        pm.Add(new MySqlParameter("districtId", MySqlDbType.Int16) { Value = blHospital.districtId });
+                        pm.Add(new MySqlParameter("address", MySqlDbType.String) { Value = blHospital.address });
+                        pm.Add(new MySqlParameter("mobileNo", MySqlDbType.String) { Value = blHospital.mobileNo });
+                        pm.Add(new MySqlParameter("emailId", MySqlDbType.String) { Value = blHospital.emailId });
+                        pm.Add(new MySqlParameter("active", MySqlDbType.Int16) { Value = blHospital.active });
+                        pm.Add(new MySqlParameter("isVerified", MySqlDbType.Int16) { Value = (int)blHospital.isVerified });
+                        pm.Add(new MySqlParameter("verifiedByLoginId", MySqlDbType.Int64) { Value = blHospital.userId });
+                        pm.Add(new MySqlParameter("registrationStatus", MySqlDbType.Int16) { Value = (Int16)RegistrationStatus.Approved });
+                        pm.Add(new MySqlParameter("registrationYear", MySqlDbType.Int32) { Value = blHospital.registrationYear });
+                        pm.Add(new MySqlParameter("clientIp", MySqlDbType.VarString) { Value = blHospital.clientIp });
+                        pm.Add(new MySqlParameter("userId", MySqlDbType.Int64) { Value = blHospital.userId });
+                        pm.Add(new MySqlParameter("entryDateTime", MySqlDbType.String) { Value = blHospital.entryDateTime });
 
-                    rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "HospitalRegistration");
+                        rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "HospitalRegistration");
+
+                        query = @"INSERT INTO userlogin (userName,userId,emailId,password,active,isDisabled,userTypeCode,userRole,entryDateTime)
+                                        VALUES (@hospitalNameEnglish,@hospitalRegNo,@emailId,@password, 1, 0, 1,1,@entryDateTime)";
+                        rb = await db.ExecuteQueryAsync(query, pm.ToArray(), "userlogin");
+                        ts.Complete();
+
+                    }
                 }
                 else
                 {
@@ -211,7 +220,7 @@ namespace TicketManagementApi.Models.DaLayer
             ReturnClass.ReturnDataTable dt = await db.ExecuteSelectQueryAsync(query, pm.ToArray());
             return dt;
         }
-        
+
 
 
     }
