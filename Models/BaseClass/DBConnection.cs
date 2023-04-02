@@ -1,4 +1,6 @@
 ﻿using MySql.Data.MySqlClient;
+using System.Reflection;
+
 namespace BaseClass
 {
 
@@ -454,5 +456,215 @@ namespace BaseClass
             }
             return connectionStringlocal;
         }
+
+
+
+        /// <summary>
+        /// SHAILESH - Async select query with parameter
+        /// </summary>
+        /// <param name="_query"></param>
+        /// <param name="sqlParameter"></param>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnDataSet> executeSelectQueryForDataset_async(String _query, MySqlParameter[] sqlParameter)
+        {
+            ReturnClass.ReturnDataSet ds = new ReturnClass.ReturnDataSet();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        con.Open();
+                        cmd.Connection = con;
+                        cmd.CommandText = _query;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.AddRange(sqlParameter);
+
+                        using (Adapter = new MySqlDataAdapter())
+                        {
+                            Adapter.SelectCommand = cmd;
+                            await Adapter.FillAsync(ds.dataset);
+                            ds.status = true;
+                        }
+                    }
+                }
+            }
+            catch (MySqlException ex)
+            {
+                WriteLog.Error(" Query: " + _query + "\n   error - ", ex);
+                ds.status = false;
+                ds.message = ex.Message;
+            }
+            return ds;
+        }
+        /// <summary>
+        /// SHAILESH - Async select query with parameter
+        /// </summary>
+        /// <param name="_query"></param>
+        /// <param name="sqlParameter"></param>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnDataSet> executeSelectQueryForDataset_async(String _query)
+        {
+            ReturnClass.ReturnDataSet ds = new ReturnClass.ReturnDataSet();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        con.Open();
+                        cmd.Connection = con;
+                        cmd.CommandText = _query;
+                        using (Adapter = new MySqlDataAdapter())
+                        {
+                            Adapter.SelectCommand = cmd;
+                            await Adapter.FillAsync(ds.dataset);
+                            ds.status = true;
+                        }
+                    }
+                }
+            }
+            catch (MySqlException ex)
+            {
+                WriteLog.Error("Query: " + _query + "\n   error - ", ex);
+                ds.status = false;
+                ds.message = ex.Message;
+            }
+            return ds;
+        }
+
+        /// <summary>
+        /// Execute Insert Query in Asynchronous mode
+        /// </summary>
+        /// <param name="_query"></param>
+        /// <param name="sqlParameter"></param>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnBool> ExecuteInsertQueryAsync(String _query, MySqlParameter[] sqlParameter)
+        {
+            ReturnClass.ReturnBool dt = new ReturnClass.ReturnBool();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        con.Open();
+                        cmd.Connection = con;
+                        cmd.CommandText = _query;
+                        cmd.Parameters.AddRange(sqlParameter);
+                        await cmd.ExecuteNonQueryAsync();
+                        dt.status = true;
+                    }
+                }
+            }
+            catch (MySqlException ex2)
+            {
+                Gen_Error_Rpt.Write_Error("ExecuteInsertQueryAsync - Query: " + _query + "\n   error - ", ex2);
+                dt.message = ex2.Message;
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Execute Insert Query in Asynchronous mode with connection string
+        /// </summary>
+        /// <param name="_query"></param>
+        /// <param name="sqlParameter"></param>
+        /// <param name="dbconname"></param>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnBool> ExecuteInsertQueryAsync(String _query, MySqlParameter[] sqlParameter, DBConnectionList dbconname)
+        {
+            ReturnClass.ReturnBool dt = new ReturnClass.ReturnBool();
+            try
+            {
+                string con_str1 = GetConnectionString(dbl: dbconname);
+
+                using (MySqlConnection con = new MySqlConnection(con_str1))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        con.Open();
+                        cmd.Connection = con;
+                        cmd.CommandText = _query;
+                        cmd.Parameters.AddRange(sqlParameter);
+                        await cmd.ExecuteNonQueryAsync();
+                        dt.status = true;
+                    }
+                }
+            }
+            catch (MySqlException ex2)
+            {
+                Gen_Error_Rpt.Write_Error("ExecuteInsertQueryAsync - Query: " + _query + "\n   error - ", ex2);
+                dt.message = ex2.Message;
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Execute Delete Query in Asynchronous mode
+        /// </summary>
+        /// <param name="_query"></param>
+        /// <param name="sqlParameter"></param>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnBool> ExecuteDeleteQueryAsync(String _query, MySqlParameter[] sqlParameter)
+        {
+            ReturnClass.ReturnBool dt = new ReturnClass.ReturnBool();
+            try
+            {
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        con.Open();
+                        cmd.Connection = con;
+                        cmd.CommandText = _query;
+                        cmd.Parameters.AddRange(sqlParameter);
+                        await cmd.ExecuteNonQueryAsync();
+                        dt.status = true;
+                    }
+                }
+            }
+            catch (MySqlException exp)
+            {
+                Gen_Error_Rpt.Write_Error("ExecuteDeleteQueryAsync - Query: " + _query + "\n   error - ", exp);
+                dt.message = exp.Message;
+            }
+            return dt;
+        }
+
+        /// <summary>
+        /// Execute Update Query in Asynchronous mode with Connection string
+        /// </summary>
+        /// <param name="_query"></param>
+        /// <param name="sqlParameter"></param>
+        /// <param name="dbconname"></param>
+        /// <returns></returns>
+        public async Task<ReturnClass.ReturnBool> ExecuteDeleteQueryAsync(String _query, MySqlParameter[] sqlParameter, DBConnectionList dbconname)
+        {
+            ReturnClass.ReturnBool dt = new ReturnClass.ReturnBool();
+            try
+            {
+                string con_str1 = GetConnectionString(dbl: dbconname);
+                using (MySqlConnection con = new MySqlConnection(con_str1))
+                {
+                    using (MySqlCommand cmd = new MySqlCommand())
+                    {
+                        con.Open();
+                        cmd.Connection = con;
+                        cmd.CommandText = _query;
+                        cmd.Parameters.AddRange(sqlParameter);
+                        await cmd.ExecuteNonQueryAsync();
+                        dt.status = true;
+                    }
+                }
+            }
+            catch (MySqlException exp)
+            {
+                Gen_Error_Rpt.Write_Error("ExecuteDeleteQueryAsync - Query: " + _query + "\n   error - ", exp);
+                dt.message = exp.Message;
+            }
+            return dt;
+        }
+
     }
 }

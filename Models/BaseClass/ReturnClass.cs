@@ -51,6 +51,7 @@ namespace BaseClass
             public bool status { get; set; }
             public string message { get; set; }
             public string error { get; set; }
+            public string? remark { get; set; }
             public ReturnBool()
             {
                 status = false;
@@ -86,6 +87,24 @@ namespace BaseClass
                 status = false;
                 message = "";
                 file_name = "";
+            }
+        }
+        public class ReturnDocumentDetail
+        {
+            public bool status { get; set; }
+            public string? filePath { get; set; }
+            public string? mimeType { get; set; }
+            public string? message { get; set; }
+            public Int16 dptTableId { get; set; }
+            public Int16 documentNumber { get; set; }
+
+            public ReturnDocumentDetail()
+            {
+                status = false;
+                filePath = "";
+                mimeType = "";
+                message = "";
+                dptTableId = 0;
             }
         }
     }

@@ -26,11 +26,8 @@
   <ItemGroup>
     <Compile Remove="Controllers\AuthenticationController.cs" />
     <Compile Remove="Controllers\CommonController.cs" />
-    <Compile Remove="Models\BLayer\BlCommon.cs" />
-    <Compile Remove="Models\BLayer\BlDocument.cs" />
     <Compile Remove="Models\BLayer\DefaultValues.cs" />
     <Compile Remove="Models\DaLayer\DlAuthentication.cs" />
-    <Compile Remove="Models\DaLayer\DlCommon.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,10 +36,6 @@
     <PackageReference Include="MySql.Data" Version="8.0.28" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.0" />
     <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\DaLayer\" />
   </ItemGroup>
 
 </Project>
