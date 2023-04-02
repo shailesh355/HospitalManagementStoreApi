@@ -1,6 +1,6 @@
 ﻿using BaseClass;
 using System.Text.RegularExpressions;
-namespace TicketManagementApi.Models.Balayer
+namespace HospitalManagementStoreApi.Models.Balayer
 {
     public class BlAuthentication
     {

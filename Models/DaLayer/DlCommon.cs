@@ -1,11 +1,11 @@
 ﻿using BaseClass;
 using MySql.Data.MySqlClient;
 using System.Net;
-using TicketManagementApi.Models.Balayer;
+using HospitalManagementStoreApi.Models.Balayer;
 using Newtonsoft.Json;
 using System.Data;
 
-namespace TicketManagementApi.Models.DaLayer
+namespace HospitalManagementStoreApi.Models.DaLayer
 {
     public class DlCommon
     {

@@ -9,7 +9,7 @@
     }
   },
   "profiles": {
-    "TicketManagementApi": {
+    "HospitalManagementStoreApi": {
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": true,

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -17,6 +17,23 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\VLayer\**" />
+    <Content Remove="Models\VLayer\**" />
+    <EmbeddedResource Remove="Models\VLayer\**" />
+    <None Remove="Models\VLayer\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Controllers\AuthenticationController.cs" />
+    <Compile Remove="Controllers\CommonController.cs" />
+    <Compile Remove="Models\BLayer\BlCommon.cs" />
+    <Compile Remove="Models\BLayer\BlDocument.cs" />
+    <Compile Remove="Models\BLayer\DefaultValues.cs" />
+    <Compile Remove="Models\DaLayer\DlAuthentication.cs" />
+    <Compile Remove="Models\DaLayer\DlCommon.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.5" />
     <PackageReference Include="MySql.Data" Version="8.0.28" />
@@ -25,7 +42,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Models\VLayer\" />
+    <Folder Include="Models\DaLayer\" />
   </ItemGroup>
 
 </Project>
