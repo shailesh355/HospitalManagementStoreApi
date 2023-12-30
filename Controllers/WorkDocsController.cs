@@ -76,5 +76,18 @@ namespace HospitalManagementStoreApi.Controllers
             rb = await DlDocumentObj.DeleteApplicationDocumentsAsync(bl);
             return rb;
         }
+
+        /// <summary>
+        /// Save Documents related to 
+        /// </summary>
+        /// <param name="bl"></param>
+        /// <returns></returns>
+        [HttpPost("uploaddocsmi")]
+        public async Task<ReturnBool> SaveWorkDocumentsAsyncMi([FromBody] BlDocument bl)
+        {
+            bl.clientIp = Utilities.GetRemoteIPAddress(this.HttpContext, true);
+            rb = await DlDocumentObj.SaveDocumentsAsyncMi(bl);
+            return rb;
+        }
     }
 }
