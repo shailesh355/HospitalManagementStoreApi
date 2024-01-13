@@ -939,7 +939,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             string extension = "";
             string[] documentInByteS;
             string[] contentType;
-            foreach (var eqp in bl.documentInByteS)
+            foreach (var eqp in bl.documentInByteS!)
             {
                 documentInByteS = eqp.Split(",");
                 byte[] bytes = Convert.FromBase64String(documentInByteS[1]);
@@ -985,6 +985,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             return extension;
         }
 
+        
         /// <summary>
         /// Save work document related documents
         /// </summary>
@@ -1149,6 +1150,172 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             {
                 //errorMsg = "Something went wrong";
                 errorMsg = ex.Message;
+                rb.status = false;
+                Gen_Error_Rpt.Write_Error("DlDocument:SaveDocumentsAsync : ", ex);
+            }
+            rb.message = errorMsg;
+            return rb;
+        }
+        public async Task<ReturnBool> SaveWorkDocumentsAsyncProfDoc(BlDocument bl)
+        {
+            MySqlParameter[] pm1; string query = "";
+
+            pm1 = new MySqlParameter[]
+          {
+                    new MySqlParameter("documentId", MySqlDbType.Int64) { Value = bl.documentId },
+                    new MySqlParameter("active", MySqlDbType.Int16) { Value = Active.No },
+                    new MySqlParameter("documentImageGroup", MySqlDbType.Int16) { Value = bl.documentImageGroup},
+                    new MySqlParameter("documentType", MySqlDbType.Int16) { Value = bl.documentType },
+          };
+            query = @"UPDATE documentstore AS ds 
+	                                    INNER JOIN documentpathtbl AS dpt ON dpt.dptTableId=ds.dptTableId
+	                                        SET ds.active=0  
+	                                    WHERE dpt.documentType=@documentType AND dpt.documentImageGroup=@documentImageGroup
+	                                    AND ds.documentId=@documentId";
+            rb = await db.ExecuteQueryAsync(query, pm1, "documentstore");
+
+
+            BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
+
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
+            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string errorMsg = "";
+            bool allowSave = true;
+
+            query = @"SELECT documentId
+                                FROM documentstore AS ds
+                            WHERE ds.documentId = @documentId AND ds.documentNumber = @documentNumber  AND ds.dptTableId = @dptTableId ";
+            pm1 = new MySqlParameter[]
+          {
+                new MySqlParameter("documentId", MySqlDbType.Int64) { Value = bl.documentId},
+                new MySqlParameter("documentNumber", MySqlDbType.Int16) { Value = bl.documentNumber},
+                new MySqlParameter("dptTableId", MySqlDbType.Int16) { Value = bdc.dptTableId},
+          };
+            dt = await db.ExecuteSelectQueryAsync(query, pm1);
+            if (dt.table.Rows.Count > 0)
+            {
+                query = @"DELETE
+                                FROM documentstore AS ds
+                            WHERE ds.documentId = @documentId AND ds.documentNumber = @documentNumber AND ds.dptTableId = @dptTableId ";
+                rb = await db.ExecuteDeleteQueryAsync(query, pm1);
+            }
+
+            query = @"INSERT INTO documentstore(documentId, documentNumber, dptTableId, amendmentNo,
+                                         documentName, documentExtension, documentMimeType, userId, clientIp)
+                             VALUES (@documentId, @documentNumber, @dptTableId, @amendmentNo, 
+                                         @documentName, @documentExtension, @documentMimeType, @userId, @clientIp)";
+            try
+            {
+                if (bdc.status)
+                {
+                    //get category wise file count for file name generation
+                    BlDocumentImagesModel docno = await GetDocumentCount(bl);
+                    if (docno.status)
+                    {
+                        string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        bool exists = Directory.Exists(storage_path);
+                        if (!exists)
+                            Directory.CreateDirectory(storage_path);
+
+                        bl.documentNumber = docno.fileCount;
+                        if (bl.documentInByte != null)
+                            bl = await convertFileBack(bl);
+                        else if (bl.documentInByteS != null)
+                            bl = await convertFileBackFromBase64(bl);
+
+                        if (bl.files.Count > 0)
+                        {
+                            foreach (var file in bl.files)
+                            {
+                                if (file.Length > bdc.maxFileSizeAllowed)
+                                {
+                                    errorMsg = "File exceeds the allowed limit";
+                                    allowSave = false;
+                                    break;
+                                }
+                                if (!bdc.fileType.Any(bl.documentMimeType.Contains))
+                                {
+                                    errorMsg = "File has a different Mime type";
+                                    allowSave = false;
+                                    break;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            errorMsg = "No files provided";
+                            allowSave = false;
+                        }
+
+                        if (allowSave)
+                        {
+                            foreach (var file in bl.files)
+                            {
+                                if (file.Length > 0)
+                                {
+                                    bl.documentMimeType = file.ContentType.ToLower();
+                                    bl.documentExtension = Path.GetExtension(file.FileName).ToString();
+                                    bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
+
+                                    using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                                    {
+                                        try
+                                        {
+                                            using (MemoryStream fs = new MemoryStream())
+                                            {
+                                                MySqlParameter[] pm = new MySqlParameter[]
+                                                {
+                                                    new MySqlParameter("documentId", MySqlDbType.Int64) { Value = bl.documentId},
+                                                    new MySqlParameter("documentNumber", MySqlDbType.Int16) { Value = bl.documentNumber},
+                                                    new MySqlParameter("dptTableId", MySqlDbType.Int16) { Value = bdc.dptTableId},
+                                                    new MySqlParameter("amendmentNo", MySqlDbType.Int16) { Value = bl.amendmentNo},
+                                                    new MySqlParameter("documentName", MySqlDbType.String) { Value = bl.documentName},
+                                                    new MySqlParameter("documentExtension", MySqlDbType.String) { Value = bl.documentExtension},
+                                                    new MySqlParameter("documentMimeType", MySqlDbType.String) { Value = bl.documentMimeType},
+                                                    new MySqlParameter("userId", MySqlDbType.Int64) { Value = bl.loginId},
+                                                    new MySqlParameter("clientIp", MySqlDbType.String) { Value = bl.clientIp}
+                                                };
+
+                                                rb = await db.ExecuteInsertQueryAsync(query, pm);
+                                                if (rb.status)
+                                                {
+                                                    file.CopyTo(stream);
+                                                    errorMsg = "Successfully uploaded";
+                                                }
+                                                else
+                                                {
+                                                    errorMsg = "Failed to save document";
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Gen_Error_Rpt.Write_Error("DlDocument:SaveDocumentsAsyncDirect(error)", ex);
+                                            rb.status = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                                bl.documentNumber++;
+                                //rb.remark = rb.remark;
+                                errorMsg = bl.documentName;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        errorMsg = "Invalid document type supplied";
+                    }
+                }
+                else
+                    errorMsg = "Invalid document supplied for the method";
+            }
+            catch (Exception ex)
+            {
+                //errorMsg = "Something went wrong";
+                errorMsg = ex.Message;
+                rb.status = false;
                 Gen_Error_Rpt.Write_Error("DlDocument:SaveDocumentsAsync : ", ex);
             }
             rb.message = errorMsg;
