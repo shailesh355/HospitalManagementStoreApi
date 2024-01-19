@@ -32,9 +32,15 @@
         License = 5,
         OtherDocument = 6,
         SDD = 7,
+        DoctorProfilePic = 8,
+        HospitalImages = 9,
+        HospitalPAN = 10,
+        DoctorHospitalImages = 11,
+        DoctorWorkArea = 12,
     }
     public enum DocumentImageGroup
     {
         Hospital = 1,
+        Doctor = 2,
     }
 }

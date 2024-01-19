@@ -102,5 +102,31 @@ namespace HospitalManagementStoreApi.Controllers
             rb = await DlDocumentObj.SaveWorkDocumentsAsyncProfDoc(bl);
             return rb;
         }
+
+        /// <summary>
+        /// Retrive Work documents
+        /// </summary>
+        /// <param name="documentName"></param>
+        /// <param name="documentType"></param>
+        /// <returns></returns>
+        [HttpGet("getdoctordocs/{documentName}/{documentType}")]
+        public async Task<IActionResult> GetDocumentAsyncNewDoctor(string documentName, DocumentType documentType)
+        {
+            ReturnDocumentDetail rs = await DlDocumentObj.GetDocumentAsync(documentName: documentName, documentType: documentType, documentImageGroup: DocumentImageGroup.Doctor);
+            if (rs.status)
+            {
+                if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                {
+                    byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+                    return File(documentData, rs.mimeType);
+                }
+                else
+                    return StatusCode(404);
+            }
+            else
+            {
+                return StatusCode(404);
+            }
+        }
     }
 }
