@@ -624,10 +624,11 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                 FROM documentstore AS ds
                             WHERE ds.documentId = @documentId AND ds.documentNumber = @documentNumber  AND ds.dptTableId = @dptTableId ";
             MySqlParameter[] pm1 = new MySqlParameter[]
-            {
+            { 
                 new MySqlParameter("documentId", MySqlDbType.Int64) { Value = bl.documentId},
                 new MySqlParameter("documentNumber", MySqlDbType.Int16) { Value = bl.documentNumber},
                 new MySqlParameter("dptTableId", MySqlDbType.Int16) { Value = bdc.dptTableId},
+                new MySqlParameter("userId", MySqlDbType.Int64) { Value = bl.loginId},
             };
             dt = await db.ExecuteSelectQueryAsync(query, pm1);
             if (dt.table.Rows.Count > 0)
@@ -637,7 +638,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                             WHERE ds.documentId = @documentId AND ds.documentNumber = @documentNumber AND ds.dptTableId = @dptTableId ";
                 rb = await db.ExecuteDeleteQueryAsync(query, pm1);
             }
-
+        
             query = @"INSERT INTO documentstore(documentId, documentNumber, dptTableId, amendmentNo,
                                          documentName, documentExtension, documentMimeType, userId, clientIp)
                              VALUES (@documentId, @documentNumber, @dptTableId, @amendmentNo, 
