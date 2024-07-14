@@ -37,32 +37,59 @@ namespace HospitalManagementStoreApi.Controllers
             rb = await DlDocumentObj.SaveDocumentsAsync(bl);
             return rb;
         }
-
-        /// <summary>
-        /// Retrive Work documents
-        /// </summary>
-        /// <param name="documentName"></param>
-        /// <param name="documentType"></param>
-        /// <returns></returns>
         [HttpGet("getdocs/{documentName}/{documentType}")]
-        public async Task<IActionResult> GetDocumentAsyncNew(string documentName, DocumentType documentType)
+        public async Task<IActionResult> GetDocumentAsync1(string documentName, DocumentType documentType)
         {
             ReturnDocumentDetail rs = await DlDocumentObj.GetDocumentAsync(documentName: documentName, documentType: documentType, documentImageGroup: DocumentImageGroup.Hospital);
             if (rs.status)
             {
-                if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                try
                 {
-                    byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
-                    return File(documentData, rs.mimeType);
+                    if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                    {
+                        byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+                        return File(documentData, rs.mimeType);
+                    }
+                    else
+                        return StatusCode(404);
                 }
-                else
+                catch (Exception ex)
+                {
+                    WriteLog.CustomLog("getdocs", ex.Message.ToString());
                     return StatusCode(404);
+                }
+
             }
             else
             {
                 return StatusCode(404);
             }
         }
+        ///// <summary>
+        ///// Retrive Work documents
+        ///// </summary>
+        ///// <param name="documentName"></param>
+        ///// <param name="documentType"></param>
+        ///// <returns></returns>
+        //[HttpGet("getdocss/{documentName}/{documentType}")]
+        //public async Task<IActionResult> GetDocumentAsyncNew(string documentName, DocumentType documentType)
+        //{
+        //    ReturnDocumentDetail rs = await DlDocumentObj.GetDocumentAsync(documentName: documentName, documentType: documentType, documentImageGroup: DocumentImageGroup.Hospital);
+        //    if (rs.status)
+        //    {
+        //        if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+        //        {
+        //            byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+        //            return File(documentData, rs.mimeType);
+        //        }
+        //        else
+        //            return StatusCode(404);
+        //    }
+        //    else
+        //    {
+        //        return StatusCode(404);
+        //    }
+        //}
 
         /// <summary>
         /// Delete any documents
@@ -128,7 +155,7 @@ namespace HospitalManagementStoreApi.Controllers
                 return StatusCode(404);
             }
         }
- 
+
 
     }
 }

@@ -220,7 +220,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             if (dt.table.Rows.Count > 0)
             {
                 _ = Enum.TryParse(dt.table.Rows[0]["documentImageGroup"].ToString(), out DocumentImageGroup dig);
-                if (documentImageGroup == dig)
+                if (documentImageGroup == dig || DocumentImageGroup.Website == dig)
                 {
                     rs.filePath = dt.table.Rows[0]["filepath"].ToString();
                     rs.mimeType = dt.table.Rows[0]["documentMimeType"].ToString();
