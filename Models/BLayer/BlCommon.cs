@@ -38,11 +38,13 @@
         DoctorHospitalImages = 11,
         DoctorWorkArea = 12,
         WebsiteBanner = 13,
+        MobileBanner = 14,
     }
     public enum DocumentImageGroup
     {
         Hospital = 1,
         Doctor = 2,
         Website = 3,
+        Mobile = 4,
     }
 }
