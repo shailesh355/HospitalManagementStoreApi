@@ -45,9 +45,11 @@ namespace HospitalManagementStoreApi.Controllers
             {
                 try
                 {
-                    if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                    //if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                        if (System.IO.File.Exists(rs.filePath))
                     {
-                        byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+                        //byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+                        byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath);
                         return File(documentData, rs.mimeType);
                     }
                     else
@@ -142,9 +144,11 @@ namespace HospitalManagementStoreApi.Controllers
             ReturnDocumentDetail rs = await DlDocumentObj.GetDocumentAsync(documentName: documentName, documentType: documentType, documentImageGroup: DocumentImageGroup.Doctor);
             if (rs.status)
             {
-                if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                //if (System.IO.File.Exists(rs.filePath.Replace("D:", "C:")))
+                    if (System.IO.File.Exists(rs.filePath))
                 {
-                    byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+                    //byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath.Replace("D:", "C:"));
+                    byte[] documentData = System.IO.File.ReadAllBytes(rs.filePath);
                     return File(documentData, rs.mimeType);
                 }
                 else

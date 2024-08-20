@@ -249,7 +249,8 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             ReturnDocumentDetail rd = await GetDocumentAsync(bl.documentName, bl.documentType, bl.documentImageGroup);
             if (rd.status)
             {
-                rd.filePath = rd.filePath.Replace("D:", "C:");
+                //rd.filePath = rd.filePath.Replace("D:", "C:");
+                rd.filePath = rd.filePath;
                 if (File.Exists(rd.filePath))
                     allowDelete = true;
             }
@@ -368,7 +369,8 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     BlDocumentImagesModel docno = await GetDocumentCount(bl);
                     if (docno.status)
                     {
-                        string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        //string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        string storage_path = bdc.physcialPath + year + addFolder;
                         bool exists = System.IO.Directory.Exists(storage_path);
                         if (!exists)
                             System.IO.Directory.CreateDirectory(storage_path);
@@ -503,7 +505,8 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     BlDocumentImagesModel docno = await GetDocumentCount(bl);
                     if (docno.status)
                     {
-                        string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        //string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        string storage_path = bdc.physcialPath + year + addFolder;
                         bool exists = Directory.Exists(storage_path);
                         if (!exists)
                             Directory.CreateDirectory(storage_path);
@@ -651,7 +654,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     BlDocumentImagesModel docno = await GetDocumentCount(bl);
                     if (docno.status)
                     {
-                        string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        string storage_path = bdc.physcialPath + year + addFolder;
                         bool exists = Directory.Exists(storage_path);
                         if (!exists)
                             Directory.CreateDirectory(storage_path);
@@ -895,7 +898,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     BlDocumentImagesModel docno = await GetDocumentCount(bl);
                     if (docno.status)
                     {
-                        string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        string storage_path = bdc.physcialPath + year + addFolder;
                         bool exists = Directory.Exists(storage_path);
                         if (!exists)
                             Directory.CreateDirectory(storage_path);
@@ -1060,7 +1063,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     BlDocumentImagesModel docno = await GetDocumentCount(bl);
                     if (docno.status)
                     {
-                        string storage_path = bdc.physcialPath.Replace("D:", "C:") + year + addFolder;
+                        string storage_path = bdc.physcialPath + year + addFolder;
                         bool exists = Directory.Exists(storage_path);
                         if (!exists)
                             Directory.CreateDirectory(storage_path);
@@ -1209,7 +1212,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     BlDocumentImagesModel docno = await GetDocumentCount(bl);
                     if (docno.status)
                     {
-                        string storage_path = bdc.physcialPath!.Replace("D:", "C:") + year + addFolder;
+                        string storage_path = bdc.physcialPath! + year + addFolder;
                         bool exists = Directory.Exists(storage_path);
                         if (!exists)
                             Directory.CreateDirectory(storage_path);
