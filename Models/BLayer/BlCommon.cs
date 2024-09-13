@@ -47,4 +47,15 @@
         Website = 3,
         Mobile = 4,
     }
+    public enum HostingEnvironment
+    {
+        Windows = 0,
+        Linux = 1,
+        ObjectStorage = 2,
+    }
+    public enum StorageType
+    {
+        ObjectStorage = 1,
+        FileSystem = 2
+    }
 }
