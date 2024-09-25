@@ -202,10 +202,22 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
         public async Task<ReturnDocumentDetail> GetDocumentAsync(string documentName, DocumentType documentType, DocumentImageGroup documentImageGroup)
         {
             ReturnDocumentDetail rs = new ReturnDocumentDetail();
+            Utilities util = new();
+            ReturnClass.ReturnBool rb = util.GetAppSettings("Build", "Version");
+            string pathIndicator = @"'\\'";
+            string  pathReplaceIndicator = @"'\'";
+            string buildType = rb.message.ToLower();
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+            {
+                pathIndicator = @"'//'";
+                pathReplaceIndicator = @"'/'";
+            }
             string query = @" SELECT ds.documentMimeType, dp.documentImageGroup, 
                                     CONCAT(dp.physicalPath,
-                                    (CASE WHEN dp.addYear = 1 then CONCAT(ds.uploadYear, '\\') ELSE '' END),
-                                    (CASE WHEN dp.addFolder = 1 then CONCAT(ds.documentId, '\\') ELSE '' END),
+                                    (CASE WHEN dp.addYear = 1 then CONCAT(ds.uploadYear, " + pathIndicator + @") ELSE '' END),
+                                    (CASE WHEN dp.addFolder = 1 then CONCAT(ds.documentId, " + pathIndicator + @") ELSE '' END),
                                     ds.documentName, ds.documentExtension) AS filepath,ds.documentId,ds.documentNumber, dp.dptTableId
                               FROM documentstore ds
                               INNER JOIN documentpathtbl dp ON dp.dptTableId = ds.dptTableId
@@ -223,6 +235,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                 if (documentImageGroup == dig || DocumentImageGroup.Hospital == dig || DocumentImageGroup.Website == dig || DocumentImageGroup.Doctor == dig || DocumentImageGroup.Mobile == dig)
                 {
                     rs.filePath = dt.table.Rows[0]["filepath"].ToString();
+                    rs.filePath = rs.filePath!.Replace(pathIndicator, pathReplaceIndicator);
                     rs.mimeType = dt.table.Rows[0]["documentMimeType"].ToString();
                     rs.documentNumber = Convert.ToInt16(dt.table.Rows[0]["documentNumber"]);
                     rs.dptTableId = Convert.ToInt16(dt.table.Rows[0]["dptTableId"]);
@@ -352,9 +365,15 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
         {
             rb = new ReturnBool();
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
-
-            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
-            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string pathIndicator = @"\";
+            string buildType = rb.message.ToLower();
+            Utilities util = new();
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+                pathIndicator = "";
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
+            string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
             bool allowSave = true;
             string query = @"INSERT INTO documentstore(documentId, documentNumber, dptTableId, amendmentNo,
@@ -401,9 +420,10 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
 
                         if (allowSave)
                         {
+
                             bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber.ToString();
-                            string filePath = storage_path + @"\" + bl.documentName + bl.documentExtension;
-                            using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                            string filePath = storage_path + pathIndicator + bl.documentName + bl.documentExtension;
+                            using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                             {
                                 try
                                 {
@@ -469,9 +489,15 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
         public async Task<ReturnBool> DeleteWorkDocumentsAsync(BlDocument bl)
         {
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
-
-            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
-            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string pathIndicator = @"\";
+            string buildType = rb.message.ToLower();
+            Utilities util = new();
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+                pathIndicator = "";
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
+            string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
             bool allowSave = true;
 
@@ -547,7 +573,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber.ToString();
 
-                                    using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                                    using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
                                         {
@@ -608,7 +634,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb.message = errorMsg;
             return rb;
         }
-         
+
 
         /// <summary>
         /// Save work document related documents
@@ -618,9 +644,15 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
         public async Task<ReturnBool> SaveDocumentsAsyncNew(BlDocument bl)
         {
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
-
-            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
-            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string pathIndicator = @"\";
+            string buildType = rb.message.ToLower();
+            Utilities util = new();
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+                pathIndicator = "";
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
+            string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
             bool allowSave = true;
 
@@ -700,7 +732,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
 
-                                    using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                                    using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
                                         {
@@ -836,7 +868,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             return extension;
         }
 
-        
+
         /// <summary>
         /// Save work document related documents
         /// </summary>
@@ -845,26 +877,33 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
         public async Task<ReturnBool> SaveDocumentsAsyncMi(BlDocument bl)
         {
             MySqlParameter[] pm1; string query = "";
-            
-                pm1 = new MySqlParameter[]
-              {
+
+            pm1 = new MySqlParameter[]
+          {
                     new MySqlParameter("hospitalRegNo", MySqlDbType.Int64) { Value = bl.documentId },
                     new MySqlParameter("active", MySqlDbType.Int16) { Value = Active.No },
                     new MySqlParameter("documentImageGroup", MySqlDbType.Int16) { Value = bl.documentImageGroup},
                     new MySqlParameter("documentType", MySqlDbType.Int16) { Value = bl.documentType },
-              };
-                query = @"UPDATE documentstore AS ds 
+          };
+            query = @"UPDATE documentstore AS ds 
 	                                    INNER JOIN documentpathtbl AS dpt ON dpt.dptTableId=ds.dptTableId
 	                                        SET ds.active=0  
 	                                    WHERE dpt.documentType=@documentType AND dpt.documentImageGroup=@documentImageGroup
 	                                    AND ds.documentId=@hospitalRegNo";
-                rb = await db.ExecuteQueryAsync(query, pm1, "documentstore");
-            
+            rb = await db.ExecuteQueryAsync(query, pm1, "documentstore");
+
 
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
 
-            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
-            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string pathIndicator = @"\";
+            string buildType = rb.message.ToLower();
+            Utilities util = new();
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+                pathIndicator = "";
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
+            string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
             bool allowSave = true;
 
@@ -943,7 +982,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
 
-                                    using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                                    using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
                                         {
@@ -1027,9 +1066,16 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
 
 
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
-
-            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
-            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string pathIndicator = @"\";
+            Utilities util = new();
+            rb = util.GetAppSettings("Build", "Version");
+            string buildType = rb.message.ToLower();           
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+                pathIndicator = "";
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
+            string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
             bool allowSave = true;
 
@@ -1108,7 +1154,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
 
-                                    using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                                    using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
                                         {
@@ -1176,9 +1222,17 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
         public async Task<ReturnBool> SaveDocumentsAsync(BlDocument bl)
         {
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
+            Utilities util = new();
+            ReturnClass.ReturnBool rb = util.GetAppSettings("Build", "Version");
+            string pathIndicator = @"\";
+            string buildType = rb.message.ToLower();
+            rb = util.GetAppSettings("ServerType", buildType);
+            string serverType = rb.message;
+            if (rb.status && buildType == "production" && serverType == "Linux")
+                pathIndicator = "";
 
-            string year = bdc.addYear ? DateTime.Now.Year.ToString() + @"\" : "";
-            string addFolder = bdc.createFolder ? bl.documentId + @"\" : "";
+            string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
+            string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
             bool allowSave = true;
 
@@ -1320,6 +1374,18 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb.message = errorMsg!;
             return rb;
         }
+        /// <summary>
+        /// </summary>
+        public static StorageType GetStorageType()
+        {
+            Utilities utilities = new();
+            ReturnBool rb = utilities.GetAppSettings("Build", "Version");
+            ReturnBool rbStorageType = utilities.GetAppSettings("StorageType", rb.message!);
+            var storageTypeString = rbStorageType.status ? rbStorageType.message! : StorageType.FileSystem.ToString();
+            StorageType storageType = (StorageType)Enum.Parse(typeof(StorageType), storageTypeString, true);
+            return storageType;
+        }
+
 
     }
 }
