@@ -204,12 +204,12 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             ReturnDocumentDetail rs = new ReturnDocumentDetail();
             Utilities util = new();
             ReturnClass.ReturnBool rb = util.GetAppSettings("Build", "Version");
-            string pathIndicator = @"'\'";
+            string pathIndicator = @"'\\'";
             string buildType = rb.message.ToLower();
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = @"'/'";
+                pathIndicator = @"'//'";
 
 
             string query = @" SELECT ds.documentMimeType, dp.documentImageGroup, 
