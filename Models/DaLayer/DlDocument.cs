@@ -214,8 +214,6 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                 pathIndicator = @"'//'";
                 pathReplaceIndicator = @"'/'";
             }
-
-
             string query = @" SELECT ds.documentMimeType, dp.documentImageGroup, 
                                     CONCAT(dp.physicalPath,
                                     (CASE WHEN dp.addYear = 1 then CONCAT(ds.uploadYear, " + pathIndicator + @") ELSE '' END),
