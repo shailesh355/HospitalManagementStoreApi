@@ -1063,8 +1063,6 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
 	                                    WHERE dpt.documentType=@documentType AND dpt.documentImageGroup=@documentImageGroup
 	                                    AND ds.documentId=@documentId";
             rb = await db.ExecuteQueryAsync(query, pm1, "documentstore");
-
-
             BlDocumentImagesModel bdc = await dl.GetDocumentImagesPath_Async(bl.stateId, bl.documentType, bl.documentImageGroup);
             string pathIndicator = @"\";
             Utilities util = new();
@@ -1073,7 +1071,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = "";
+                pathIndicator = @"/";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -1153,7 +1151,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentMimeType = file.ContentType.ToLower();
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
-
+                                    pathIndicator = "";
                                     using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
