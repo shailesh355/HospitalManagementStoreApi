@@ -371,7 +371,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = @"/";
+                pathIndicator = "";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -495,7 +495,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = @"/";
+                pathIndicator = "";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -650,7 +650,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = @"/";
+                pathIndicator = "";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -901,7 +901,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = @"/";
+                pathIndicator = "";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -1229,7 +1229,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = @"/";
+                pathIndicator = "";
 
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
