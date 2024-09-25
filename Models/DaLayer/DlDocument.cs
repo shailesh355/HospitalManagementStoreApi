@@ -371,7 +371,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = "";
+                pathIndicator = @"/";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -423,6 +423,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
 
                             bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber.ToString();
                             string filePath = storage_path + pathIndicator + bl.documentName + bl.documentExtension;
+                            pathIndicator = "";
                             using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                             {
                                 try
@@ -495,7 +496,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = "";
+                pathIndicator = @"/";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -572,7 +573,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentMimeType = file.ContentType.ToLower();
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber.ToString();
-
+                                    pathIndicator = "";
                                     using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
@@ -650,7 +651,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = "";
+                pathIndicator = @"/";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -731,7 +732,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentMimeType = file.ContentType.ToLower();
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
-
+                                    pathIndicator = "";
                                     using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
@@ -901,7 +902,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = "";
+                pathIndicator = @"/";
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
             string errorMsg = "";
@@ -981,7 +982,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentMimeType = file.ContentType.ToLower();
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
-
+                                    pathIndicator = "";
                                     using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
@@ -1227,7 +1228,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
-                pathIndicator = "";
+                pathIndicator = @"/";
 
             string year = bdc.addYear ? DateTime.Now.Year.ToString() + pathIndicator : "";
             string addFolder = bdc.createFolder ? bl.documentId + pathIndicator : "";
@@ -1308,8 +1309,8 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                                     bl.documentMimeType = file.ContentType.ToLower();
                                     bl.documentExtension = Path.GetExtension(file.FileName).ToString();
                                     bl.documentName = bl.documentId + "_" + bdc.dptTableId + "_" + bl.documentNumber;
-
-                                    using (var stream = new FileStream(storage_path + @"\" + bl.documentName + bl.documentExtension, FileMode.CreateNew))
+                                    pathIndicator = "";
+                                    using (var stream = new FileStream(storage_path + pathIndicator + bl.documentName + bl.documentExtension, FileMode.CreateNew))
                                     {
                                         try
                                         {
