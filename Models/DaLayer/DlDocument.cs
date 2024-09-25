@@ -205,11 +205,15 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
             Utilities util = new();
             ReturnClass.ReturnBool rb = util.GetAppSettings("Build", "Version");
             string pathIndicator = @"'\\'";
+            string  pathReplaceIndicator = @"'\'";
             string buildType = rb.message.ToLower();
             rb = util.GetAppSettings("ServerType", buildType);
             string serverType = rb.message;
             if (rb.status && buildType == "production" && serverType == "Linux")
+            {
                 pathIndicator = @"'//'";
+                pathReplaceIndicator = @"'/'";
+            }
 
 
             string query = @" SELECT ds.documentMimeType, dp.documentImageGroup, 
@@ -233,6 +237,7 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                 if (documentImageGroup == dig || DocumentImageGroup.Hospital == dig || DocumentImageGroup.Website == dig || DocumentImageGroup.Doctor == dig || DocumentImageGroup.Mobile == dig)
                 {
                     rs.filePath = dt.table.Rows[0]["filepath"].ToString();
+                    rs.filePath = rs.filePath!.Replace(pathIndicator, pathReplaceIndicator);
                     rs.mimeType = dt.table.Rows[0]["documentMimeType"].ToString();
                     rs.documentNumber = Convert.ToInt16(dt.table.Rows[0]["documentNumber"]);
                     rs.dptTableId = Convert.ToInt16(dt.table.Rows[0]["dptTableId"]);
