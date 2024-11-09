@@ -1359,16 +1359,21 @@ namespace HospitalManagementStoreApi.Models.AppClass.DataLayer
                     else
                     {
                         errorMsg = "Invalid document type supplied";
+                        rb.status = false;
                     }
                 }
                 else
+                {
                     errorMsg = "Invalid document supplied for the method";
-            }
+                    rb.status = false;
+                }
+                }
             catch (Exception ex)
             {
                 //errorMsg = "Something went wrong";
                 errorMsg = ex.Message;
                 Gen_Error_Rpt.Write_Error("DlDocument:SaveDocumentsAsync : ", ex);
+                                            rb.status = false;
             }
             rb.message = errorMsg!;
             return rb;
